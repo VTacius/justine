@@ -5,15 +5,15 @@ from pyramid import httpexceptions as exception
 from ..juliette.usuarios import Usuarios
 
 @view_config(route_name='usuarios_listado', renderer='json')
-def usuarios_listado(request):
+def usuarios_listado(peticion):
     usuarios = Usuarios()
     contenido = usuarios.listar()[:150]
     return contenido
 
 @view_config(route_name='usuarios_detalle', renderer='json')
-def usuarios_detalle(request):
+def usuarios_detalle(peticion):
     usuarios = Usuarios()
-    uid = request.matchdict['usuario']
+    uid = peticion.matchdict['usuario']
     try:
         contenido = {'data': usuarios.detalle(uid)}
     except Exception as e:
@@ -22,26 +22,43 @@ def usuarios_detalle(request):
     return contenido
     
 @view_config(route_name="usuarios_creacion", renderer='json')
-def usuarios_creacion(request):
+def usuarios_creacion(peticion):
     usuarios = Usuarios()
     # Colander debe entrar en acción en este punto
     try:
-        contenido = request.json_body['corpus']
+        contenido = peticion.json_body['corpus']
     except Exception as e:
         return exception.HTTPBadRequest()
 
     # Es nuestra librería la que puede decirnos que el usuario ya existe o no
     try:
         contenido = usuarios.creacion(contenido)
-    except Exception as e:
+    except IOError as e:
         return exception.exception_response(409)
+    except Exception as e:
+        return exception.exception_response(500)
 
     # La siguiente parece ser LA FORMA de responder en este caso
-    respuesta = request.response
+    respuesta = peticion.response
     respuesta.status_code = 201
     respuesta.headerlist = [
         ('Location', str(contenido)),
     ]
-    return respuesta
+    return {'mensaje': contenido}
+
+
+@view_config(route_name='usuarios_borrado', renderer='json')
+def usuarios_borrado(peticion):
+    usuarios = Usuarios()
     
+    uid = peticion.matchdict['usuario'] 
+    print uid
     
+    try:
+        contenido = usuarios.borrado(uid)
+    except ValueError as e:
+        return exception.exception_response(404)
+    except Exception as e:
+        return exception.exception_response(500)
+
+    return {'mensaje': contenido}

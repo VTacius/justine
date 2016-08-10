@@ -1,7 +1,10 @@
 # coding: utf-8
 
 from json import load, dump
-from os import getcwd
+
+# Las siguientes librerías son parte del core actual, podrían volverse innecesarias cuando use la
+# API de Samba4
+from os import getcwd, remove
 
 class Usuarios:
    
@@ -40,12 +43,13 @@ class Usuarios:
         try: 
             fichero = open(direccion)
         except IOError as e:
-            # Si hubo un error de cualquier tipo, no hacer nada, el nuestro no necesita algo parecido
+            # Si hubo un error de cualquier tipo respecto a abrir el fichero, no hacer nada, 
+            # precisamente el fichero no debe existir
             pass
         else:
             # Si no ha habido error y el archivo se pudo abrir, significa de hecho que existe
             # y por tanto habrá que generar una excepción
-            raise Exception()
+            raise IOError
         
         # Creamos al usuario verificando que todo este bien
         try:
@@ -58,6 +62,30 @@ class Usuarios:
         
         # Debería retornar, de hecho, la URL del nuevo objeto creado
         return "/usuarios/" + uid 
+
+    def borrado(self, uid):
+       
+        direccion = self.direccion + '/datos.d/usuarios_detalle_' + uid + '.json'
+
+        print direccion
+        
+        # Estamos verificando si el usuario existe
+        try: 
+            fichero = open(direccion)
+        except IOError as e:
+            # Si no pudo abrir el archivo, es porque el usuario no existe
+            # Devuelve error 404 al cliente
+            raise ValueError
+       
+        # Ahora realizamos la operación de la propiamente dicha 
+        try:
+            remove(direccion)
+        except Exception as e:
+            # Este será un error más general, 
+            # Devuelve error 500 al cliente
+            raise Exception(e.args)
        
 if __name__ == '__main__':
+    #u = Usuarios()
+    #u.borrado('opineda')
     pass
