@@ -39,11 +39,12 @@ def usuarios_creacion(peticion):
         return exception.exception_response(500)
 
     # La siguiente parece ser LA FORMA de responder en este caso
-    respuesta = peticion.response
-    respuesta.status_code = 201
-    respuesta.headerlist = [
-        ('Location', str(contenido)),
-    ]
+    # Sin embargo, mi response en este caso esta vació cuando se llama con un Request creado vacío
+    # respuesta = peticion.response
+    peticion.response.status_code = 201
+    peticion.response.headerlist = [
+         ('Location', str(contenido)),
+     ]
     return {'mensaje': contenido}
 
 
@@ -52,7 +53,6 @@ def usuarios_borrado(peticion):
     usuarios = Usuarios()
     
     uid = peticion.matchdict['usuario'] 
-    print uid
     
     try:
         contenido = usuarios.borrado(uid)
