@@ -62,14 +62,14 @@ class Creacion(TestCase):
         self.testapp.delete('/usuarios/' + self.uid, status=200)
 
     def test_creacion_usuarios(self):
-        datos = self.datos
-        respuesta = self.testapp.post_json('/usuarios', status=201, params=datos)
+        respuesta = self.testapp.post_json('/usuarios', status=201, params=self.datos)
        
         self.assertEqual(respuesta.status_int, 201)
     
     def test_creacion_usuarios_existente(self):
         datos = self.datos
-        respuesta = self.testapp.post_json('/usuarios', status=409, params=datos)
+        datos['uid'] = 'alortiz'
+        respuesta = self.testapp.post_json('/usuarios', status=409, params=self.datos)
         
         self.assertEqual(respuesta.status_int, 409)
     
@@ -79,11 +79,32 @@ class Creacion(TestCase):
 
         self.assertEqual(respuesta.status_int, 400)
 
-class Borrado(TestCase):
-    def setUp(self):
+class Borrado(TestCase):  
+    
+    @classmethod
+    def setUpClass(self):
+        self.uid = "lquevedo"
+        self.datos = {"corpus": {"uid": self.uid, "sambaAcctFlags": True, "dui": "123456789-0", "title": "Gerente de Oficina", 
+            "grupos": ["1003", "1039", "1034"], "usoBuzon": "150MB", "fecha": "01/11/1980", "mail": "lquevedo@salud.gob.sv", 
+            "respuesta": "La misma de siempre", "loginShell": "false", "pregunta": "¿Cuál es mi pregunta?", "buzonStatus": True, 
+            "grupo": "512", "nit": "4654-456546-142-3", "telephoneNumber": "7459", "cuentaStatus": True, "volumenBuzon": "500MB", 
+            "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}, "jvs": {"estado": True, "valor": None}, 
+            "sn": "Quevedo", "ou": "Unidad Financiera Institucional", "givenName": "Laura", "userPassword": "Abc_9999"}}
+        
         from justine import main
         from webtest import TestApp
         
         app = main({})
         self.testapp = TestApp(app)
 
+        # Creamos un usuarios que luego vamos a borrar, al menos un mi mente así funciona estas cosas
+        self.testapp.post_json('/usuarios', status=201, params=self.datos)
+    
+    def test_borrado_usuarios(self):
+        respuesta = self.testapp.delete('/usuarios/' + self.uid, status=200)
+        self.assertEqual(respuesta.status_int, 200)
+   
+    def test_borrado_usuarios_inexistente(self):
+        self.uid = "fitzcarraldo"
+        respuesta = self.testapp.delete('/usuarios/' + self.uid, status=404)
+        self.assertEqual(respuesta.status_int, 404)

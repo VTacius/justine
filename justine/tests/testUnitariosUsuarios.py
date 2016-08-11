@@ -54,15 +54,18 @@ class Creacion(TestCase):
             "respuesta": "La misma de siempre", "loginShell": "false", "pregunta": "¿Cuál es mi pregunta?", "buzonStatus": True, 
             "grupo": "512", "nit": "4654-456546-142-3", "telephoneNumber": "7459", "cuentaStatus": True, "volumenBuzon": "500MB", 
             "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}, "jvs": {"estado": True, "valor": None}, 
-            "sn": "Pineda", "ou": "Unidad Financiera Institucional", "givenName": "Olga", "userPassword": "Abc_9999"}}
+            "sn": "Quintanilla", "ou": "Unidad Financiera Institucional", "givenName": "Elida", "userPassword": "Abc_9999"}}
 
     def tearDown(self):
         self.config = testing.tearDown()
- 
+    
+    """ 
+    Sigo sin ser capaz de crear el usuarios, el método debería ser este sin mayores inconvenientes
+    El problema consiste en que esta peticion carece del atributo registry, que sigo sin entender de donde lo saca, 
+    pero que lo hecha de menos cuando hago request.response en la vista 
+    
+    """
     #def test_usuarios_creacion(self):
-    #    # Sigo sin ser capaz de crear el usuarios, el método debería ser este sin mayores inconvenientes
-    #    # El problema consiste en que esta peticion carece del atributo registry, que sigo sin entender de donde lo saca, 
-    #    # pero que lo hecha de menos cuando hago request.response en la vista 
     #    from ..views.usuarios import usuarios_creacion
     #    from pyramid.request import Request
  
@@ -77,14 +80,16 @@ class Creacion(TestCase):
         from ..views.usuarios import usuarios_creacion
         from pyramid.request import Request
         from pyramid.httpexceptions import HTTPConflict
-
-        datos = dumps(self.datos)
         
-        peticion = Request.blank('', {}, body=datos)
+        datos = self.datos
+        datos['corpus']['uid'] = 'alortiz'       
+        datos_json = dumps(datos) 
+       
+        peticion = Request.blank('', {}, body=datos_json)
 
         respuesta = usuarios_creacion(peticion)
  
-        self.assertTrue(isinstance(respuesta , HTTPConflict))
+        self.assertEqual(type(respuesta) , HTTPConflict)
 
     def test_usuarios_creacion_peticion_malformada(self):
         from ..views.usuarios import usuarios_creacion
@@ -98,3 +103,55 @@ class Creacion(TestCase):
         respuesta = usuarios_creacion(peticion)
         
         self.assertTrue(isinstance(respuesta, HTTPBadRequest))
+
+class Borrado(TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.config = testing.setUp()
+        self.uid = "lmulato"
+        self.datos = {"corpus": {"uid": self.uid, "sambaAcctFlags": True, "dui": "123456789-0", "title": "Gerente de Oficina", 
+            "grupos": ["1003", "1039", "1034"], "usoBuzon": "150MB", "fecha": "01/11/1980", "mail": "opineda@salud.gob.sv", 
+            "respuesta": "La misma de siempre", "loginShell": "false", "pregunta": "¿Cuál es mi pregunta?", "buzonStatus": True, 
+            "grupo": "512", "nit": "4654-456546-142-3", "telephoneNumber": "7459", "cuentaStatus": True, "volumenBuzon": "500MB", 
+            "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}, "jvs": {"estado": True, "valor": None}, 
+            "sn": "Mulato", "ou": "Unidad Financiera Institucional", "givenName": "Lorena", "userPassword": "Abc_9999"}}
+        
+        # Creo que esto es de lo peor que puedo hacer: Usar métodos más funcionales que unitarios
+        # en un test unitario, sin embargo es la única forma de sobrepasar el problema
+
+        from justine import main        
+        from webtest import TestApp
+
+        app = main({})
+        testapp = TestApp(app)
+        
+        testapp.post_json('/usuarios', status=201, params=self.datos)  
+
+    @classmethod
+    def tearDownClass(self):
+        self.config = testing.tearDown()
+
+    def test_usuarios_borrado(self):
+        from ..views.usuarios import usuarios_borrado
+        
+        peticion = testing.DummyRequest()
+        peticion.matchdict = {'usuario': self.uid}
+        
+        respuesta = usuarios_borrado(peticion)
+        
+        self.assertEqual(respuesta['mensaje'], self.uid + " Borrado")
+
+
+    def test_usuarios_borrado_inexistente(self):
+        from ..views.usuarios import usuarios_borrado
+        from pyramid.httpexceptions import HTTPNotFound
+        
+        uid = "fitzcarraldo"    
+            
+        peticion = testing.DummyRequest()
+        peticion. matchdict = {'usuario': uid}
+
+        respuesta = usuarios_borrado(peticion)
+
+        self.assertEqual(type(respuesta), HTTPNotFound)
+

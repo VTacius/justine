@@ -51,7 +51,7 @@ class Usuarios:
             # y por tanto habrá que generar una excepción
             raise IOError
         
-        # Creamos al usuario verificando que todo este bien
+        # Realizamos la operación Creación de usuario 
         try:
             fichero = open(direccion, 'w')
             dump(contenido, fichero)
@@ -67,9 +67,7 @@ class Usuarios:
        
         direccion = self.direccion + '/datos.d/usuarios_detalle_' + uid + '.json'
 
-        print direccion
-        
-        # Estamos verificando si el usuario existe
+        # Verifica si el usuario existe
         try: 
             fichero = open(direccion)
         except IOError as e:
@@ -77,15 +75,42 @@ class Usuarios:
             # Devuelve error 404 al cliente
             raise ValueError
        
-        # Ahora realizamos la operación de la propiamente dicha 
+        # Realizamos la operación Borrado de usuario 
         try:
-            remove(direccion)
+            contenido = remove(direccion)
         except Exception as e:
             # Este será un error más general, 
             # Devuelve error 500 al cliente
             raise Exception(e.args)
-       
+      
+        return uid + " Borrado" 
+
+    def actualizacion(self, uid, contenido):
+        direccion = self.direccion + '/datos.d/usuarios_detalle_' + uid + '.json'
+
+        # Verifica que el usuario existe
+        try:
+            fichero = open(direccion)
+        except Exception as e:
+            raise ValueError
+
+        # Realizamos la operacion Actualización de Usuario
+        try:
+            fichero = open(direccion, 'w')
+            dump(contenido, fichero)
+        except Exception as e:
+            # Este será un error más general, 
+            # Devuelve error 500 al cliente
+            print e.args
+            raise Exception(e.args)
+
+        return uid + " Actualizado"
+            
+
 if __name__ == '__main__':
-    #u = Usuarios()
+    u = Usuarios()
     #u.borrado('opineda')
+    contenido = {'uid': 'ebonilla', 'givenName': 'Ericka'}
+    u.actualizacion(contenido)
+    
     pass

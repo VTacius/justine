@@ -12,8 +12,10 @@ def usuarios_listado(peticion):
 
 @view_config(route_name='usuarios_detalle', renderer='json')
 def usuarios_detalle(peticion):
-    usuarios = Usuarios()
+    # ¿Debe Colander entrar en acción en este punto?
     uid = peticion.matchdict['usuario']
+    
+    usuarios = Usuarios()
     try:
         contenido = {'data': usuarios.detalle(uid)}
     except Exception as e:
@@ -23,19 +25,22 @@ def usuarios_detalle(peticion):
     
 @view_config(route_name="usuarios_creacion", renderer='json')
 def usuarios_creacion(peticion):
-    usuarios = Usuarios()
     # Colander debe entrar en acción en este punto
     try:
         contenido = peticion.json_body['corpus']
     except Exception as e:
         return exception.HTTPBadRequest()
 
+    usuarios = Usuarios()
     # Es nuestra librería la que puede decirnos que el usuario ya existe o no
     try:
-        contenido = usuarios.creacion(contenido)
+        mensaje = usuarios.creacion(contenido)
     except IOError as e:
-        return exception.exception_response(409)
+        # Si el usuario existe, devolvemos un 409 Conflict
+        return exception.HTTPConflict()
     except Exception as e:
+        # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
+        # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
         return exception.exception_response(500)
 
     # La siguiente parece ser LA FORMA de responder en este caso
@@ -43,22 +48,53 @@ def usuarios_creacion(peticion):
     # respuesta = peticion.response
     peticion.response.status_code = 201
     peticion.response.headerlist = [
-         ('Location', str(contenido)),
+         ('Location', str(mensaje)),
      ]
-    return {'mensaje': contenido}
+    return {'mensaje': mensaje}
 
 
 @view_config(route_name='usuarios_borrado', renderer='json')
 def usuarios_borrado(peticion):
-    usuarios = Usuarios()
-    
+    # Colander debe entrar en acción en este punto
     uid = peticion.matchdict['usuario'] 
     
+    usuarios = Usuarios()
     try:
-        contenido = usuarios.borrado(uid)
+        mensaje = usuarios.borrado(uid)
     except ValueError as e:
+        # Si el usuario no existe, devolvemos un 404 Not Found
         return exception.exception_response(404)
     except Exception as e:
+        # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
+        # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
         return exception.exception_response(500)
 
-    return {'mensaje': contenido}
+    return {'mensaje': mensaje}
+
+@view_config(route_name='usuarios_actualizacion', renderer='json')
+def usuarios_actualizacion(peticion):
+    # Colander definitivamente debe entrar en acción en este punto
+
+    try:
+        uid = peticion.matchdict['usuario']
+        contenido = peticion.json_body['corpus']
+        # El corpus debe estar completo, y coincidir con el {usuario} que se peticiona a PUT
+        if uid != contenido['uid']:
+            raise Exception
+    except Exception as e:
+        return exception.HTTPBadRequest()
+
+    usuarios = Usuarios()
+    try:
+        mensaje = usuarios.actualizacion(uid, contenido)
+    except ValueError as e:
+        # Si el usuario no existe, devolvemos un 404 Not Found
+        return exception.exception_response(404)
+    except Exception as e:
+        # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
+        # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
+        print "Fallo"
+        print e.args
+        return exception.exception_response(500)
+        
+    return {'mensaje': mensaje}
