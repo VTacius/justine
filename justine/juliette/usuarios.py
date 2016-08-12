@@ -1,9 +1,8 @@
 # coding: utf-8
 
-from json import load, dump
-
 # Las siguientes librerías son parte del core actual, podrían volverse innecesarias cuando use la
 # API de Samba4
+from json import load, dump
 from os import getcwd, remove
 
 class Usuarios:
@@ -91,8 +90,15 @@ class Usuarios:
         # Verifica que el usuario existe
         try:
             fichero = open(direccion)
+            contenido_original = load(fichero)
         except Exception as e:
             raise ValueError
+
+        # Comprobamos que el contenido recibido tenga el mismo contenido del objeto original
+        claves = contenido_original.keys()
+        for clave in claves:
+            if clave not in contenido:
+                contenido[clave] = contenido_original[clave]
 
         # Realizamos la operacion Actualización de Usuario
         try:
@@ -101,11 +107,36 @@ class Usuarios:
         except Exception as e:
             # Este será un error más general, 
             # Devuelve error 500 al cliente
-            print e.args
             raise Exception(e.args)
 
         return uid + " Actualizado"
-            
+    
+    def cambiado(self, uid, contenido):
+        direccion = self.direccion + '/datos.d/usuarios_detalle_' + uid + '.json'
+
+        # Verifica que el usuario existe
+        try:
+            fichero = open(direccion, 'r')
+            contenido_original = load(fichero)
+        except Exception as e:
+            raise ValueError
+       
+        # Realizamos operación de parchado de usuario
+        
+        # ¿Qué claves le es posible cambiar?
+        claves = ['sn', 'givenName', 'o', 'ou', 'dui', 'nit', 'fecha', 'title', 'pregunta', 'respuesta']
+      
+        for clave in claves:
+            if clave in contenido:
+                contenido_original[clave] = contenido[clave]
+             
+        try:
+            fichero = open(direccion, 'w')
+            dump(contenido_original, fichero)
+        except Exception as e:
+            raise Exception(e.args)
+
+        return uid + " Parchado"
 
 if __name__ == '__main__':
     u = Usuarios()

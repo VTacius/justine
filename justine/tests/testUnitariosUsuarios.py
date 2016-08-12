@@ -89,7 +89,7 @@ class Creacion(TestCase):
 
         respuesta = usuarios_creacion(peticion)
  
-        self.assertEqual(type(respuesta) , HTTPConflict)
+        self.assertEqual(type(respuesta), HTTPConflict)
 
     def test_usuarios_creacion_peticion_malformada(self):
         from ..views.usuarios import usuarios_creacion
@@ -190,9 +190,144 @@ class Actualizacion(TestCase):
         usuarios_borrado(peticion)
     
     def test_usuarios_actualizacion(self):
+        from ..views.usuarios import usuarios_actualizacion
+        from pyramid.request import Request
+
+        datos = dumps({'corpus': {'uid': self.uid, 'sn':'Mendoza', 'givenName': 'Ana'}})
+ 
+        peticion = Request.blank('', {}, body = datos)
+        peticion.matchdict = {'usuario': self.uid}
+        
+        respuesta = usuarios_actualizacion(peticion)
+        
+        self.assertEqual(respuesta['mensaje'], self.uid + ' Actualizado')
+       
+    def test_usuarios_actualizacion_peticion_malformada(self):
+        from ..views.usuarios import usuarios_actualizacion
+        from pyramid.request import Request
+        from pyramid.httpexceptions import HTTPBadRequest
+
+        datos = 'Maximo daño con el mínimo esfuerzo'
+        peticion = Request.blank('', {}, body = datos)
+        peticion.matchdict = {'usuario': self.uid}
+        
+        respuesta = usuarios_actualizacion(peticion)
+        
+        self.assertEqual(type(respuesta), HTTPBadRequest)
+
+    def test_usuarios_actualizacion_noexistente(self):
+        from ..views.usuarios import usuarios_actualizacion
+        from pyramid.request import Request
+        from pyramid.httpexceptions import HTTPNotFound
+        
+        uid = 'fitzcarraldo'
+        datos = dumps({'corpus': {'uid': uid, 'sn':'Mendoza', 'givenName': 'Ana'}})
+        peticion = Request.blank('', {}, body=datos)
+        peticion.matchdict = {'usuario': uid}
+        
+        respuesta = usuarios_actualizacion(peticion)
+        
+        self.assertEqual(type(respuesta), HTTPNotFound)
+
+    def test_usuarios_actualizacion_no_correlacion(self):
+        from ..views.usuarios import usuarios_actualizacion
+        from pyramid.request import Request
+        from pyramid.httpexceptions import HTTPBadRequest
+
+        uid_principal = 'alortiz'
+        uid_alterno = 'fitzcarraldo'
+        datos = dumps({'corpus': {'uid': uid_principal, 'sn':'Mendoza', 'givenName': 'Ana'}})
+        peticion = Request.blank('', {}, body=datos)
+        peticion.matchdict = {'usuario': uid_alterno}
+
+        respuesta = usuarios_actualizacion(peticion)
+
+        self.assertEqual(type(respuesta), HTTPBadRequest)
+
+    def test_usuarios_actualizacion_claves_completas(self):
+        from ..views.usuarios import usuarios_actualizacion
+        from ..views.usuarios import usuarios_detalle
+        from pyramid.request import Request
+
+        uid = 'alortiz'
+        sn = 'Castro Ortega'
+        datos = dumps({'corpus': {'uid': uid, 'sn': sn}})
+        peticion = Request.blank('', {}, body=datos)
+        peticion.matchdict = {'usuario': uid}
+
+        respuesta = usuarios_actualizacion(peticion)
+
+        peticion = testing.DummyRequest()
+        peticion.matchdict = {'usuario': uid}
+
+        respuesta = usuarios_detalle(peticion)
+
+        self.assertEqual(respuesta['data']['sn'], sn)
+        
+class Parchado(TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.config = testing.setUp()
+        self.uid = 'jabdalah'
+        self.datos = {'corpus': {'uid': self.uid, 'sn':'Mendoza', 'givenName': 'Ana'}}
+      
+        # Creo que esto es de lo peor que puedo hacer: Usar métodos más funcionales que unitarios
+        # en un test unitario, sin embargo es la única forma de sobrepasar el problema
+         
+        from justine import main
+        from webtest import TestApp
+
+        app = main({})
+        testapp = TestApp(app)
+        
+        testapp.post_json('/usuarios', status=201, params=self.datos)
+
+    @classmethod
+    def tearDownClass(self):
         from ..views.usuarios import usuarios_borrado
         
         peticion = testing.DummyRequest()
         peticion.matchdict = {'usuario': self.uid}
-        
+
         usuarios_borrado(peticion)
+
+    def test_usuarios_parchado(self):
+        from ..views.usuarios import usuarios_parchado
+        from pyramid.request import Request
+
+        datos = {'corpus': {'sn': 'Mendoza Castro', 'givenName': 'Anita'}}
+        datos_json = dumps(datos)
+        peticion = Request.blank('', {}, body=datos_json)
+        peticion.matchdict = {'usuario': self.uid}
+
+        respuesta = usuarios_parchado(peticion)
+
+        self.assertEqual(respuesta['mensaje'], self.uid + " Parchado")
+
+    def test_usuarios_parchado_noexistente(self):
+        from ..views.usuarios import usuarios_parchado
+        from pyramid.request import Request
+        from pyramid.httpexceptions import HTTPNotFound
+        
+        uid = 'fitzcarraldo'        
+        datos = dumps({'corpus': {'sn': 'Mendoza Castro', 'givenName': 'Anita'}})
+        peticion =  Request.blank('', {}, body = datos)
+        peticion.matchdict = {'usuario': uid}
+
+        respuesta = usuarios_parchado(peticion)
+        
+        self.assertEqual(type(respuesta), HTTPNotFound)
+
+    def test_usuarios_parchado_peticion_malformada(self):
+        from ..views.usuarios import usuarios_parchado
+        from pyramid.request import Request
+        from pyramid.httpexceptions import HTTPBadRequest
+
+        datos = 'Maximo daño con el mínimo esfuerzo'
+
+        peticion = Request.blank('', {}, body=datos)
+        peticion.matchdict = {'usuario': self.uid}
+        
+        respuesta = usuarios_parchado(peticion)
+
+        self.assertEqual(type(respuesta),  HTTPBadRequest)

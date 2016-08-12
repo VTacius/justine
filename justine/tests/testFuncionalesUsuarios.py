@@ -62,6 +62,7 @@ class Creacion(TestCase):
         self.testapp.delete('/usuarios/' + self.uid, status=200)
 
     def test_creacion_usuarios(self):
+
         respuesta = self.testapp.post_json('/usuarios', status=201, params=self.datos)
        
         self.assertEqual(respuesta.status_int, 201)
@@ -69,12 +70,14 @@ class Creacion(TestCase):
     def test_creacion_usuarios_existente(self):
         datos = self.datos
         datos['uid'] = 'alortiz'
+
         respuesta = self.testapp.post_json('/usuarios', status=409, params=self.datos)
         
         self.assertEqual(respuesta.status_int, 409)
     
     def test_creacion_usuarios_peticion_malformada(self):
         datos = "Mínimo esfuerzo para máximo daño"
+
         respuesta = self.testapp.post_json('/usuarios', status=400, params=datos)
 
         self.assertEqual(respuesta.status_int, 400)
@@ -102,11 +105,14 @@ class Borrado(TestCase):
     
     def test_borrado_usuarios(self):
         respuesta = self.testapp.delete('/usuarios/' + self.uid, status=200)
+
         self.assertEqual(respuesta.status_int, 200)
    
     def test_borrado_usuarios_inexistente(self):
         self.uid = "fitzcarraldo"
+
         respuesta = self.testapp.delete('/usuarios/' + self.uid, status=404)
+
         self.assertEqual(respuesta.status_int, 404)
 
 class Actualizacion(TestCase):
@@ -138,6 +144,7 @@ class Actualizacion(TestCase):
         datos = self.datos
         datos['corpus']['giveName'] = 'Claudia Carolina'
         datos['corpus']['sn'] = 'Peña Nieto'
+
         respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=200, params=datos)
 
         self.assertEqual(respuesta.status_int, 200)
@@ -145,16 +152,105 @@ class Actualizacion(TestCase):
     def test_actualizacion_usuarios_noexistente(self):
         datos = self.datos
         uid = datos['corpus']['uid'] = 'fitzcarraldo'
-        
+
         respuesta = self.testapp.put_json('/usuarios/' + uid, status=404, params=datos)
+    
+        self.assertEqual(respuesta.status_int, 404)
     
     def test_actualizacion_usuarios_uid_nocoincidente(self):
         datos = self.datos
         datos['corpus']['uid'] = 'fitzcarraldo' 
+
         respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=400, params=datos)
+        
+        self.assertEqual(respuesta.status_int, 400)
     
     def test_actualizacion_usuarios_uid_peticion_malformada(self):
         datos = 'Mínimo esfuerzo para máximo daño'
         self.datos['corpus']['uid'] = 'cpena'
         self.uid = 'cpena'
+
         respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=400, params=datos)
+
+        self.assertEqual(respuesta.status_int, 400)
+
+    def test_actualizacion_usuarios_claves_completas(self):
+        sn = 'Castro Ortega'
+        datos = {'corpus': {'uid': self.uid, 'sn': sn}}
+
+        self.testapp.put_json('/usuarios/' + self.uid, status=200, params=datos)
+
+        respuesta = self.testapp.get('/usuarios/' + self.uid, status=200)
+
+        claves = sorted(respuesta.json_body['data'].keys())
+        claves_primarias = sorted(self.datos['corpus'].keys())
+
+        self.assertEqual(claves, claves_primarias)
+
+class Parchado(TestCase):
+    
+    @classmethod
+    def setUpClass(self):
+        self.uid = 'mrevelo'
+        self.datos = {'corpus': {'uid': self.uid, 'sn':'Mendoza', 'givenName': 'Ana'}}
+        
+        from justine import main
+        from webtest import TestApp
+
+        app = main({})
+        self.testapp = TestApp(app)
+        
+        self.testapp.post_json('/usuarios', status=201, params=self.datos)
+
+    @classmethod
+    def tearDownClass(self):
+        self.testapp.delete('/usuarios/' + self.uid, status=200) 
+
+    def test_parchado_usuarios(self):
+        datos = {'corpus': {'sn': 'Mendoza Castro', 'givenName': 'Anita'}}
+        respuesta = self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos)
+
+        self.assertEqual(respuesta.status_int, 200) 
+
+    def test_parchado_usuarios_noexistente(self):
+        uid = 'fitzcarraldo'
+        datos = {'corpus': {'sn': 'Mendoza Castro', 'givenName': 'Anita'}}
+        
+        respuesta = self.testapp.patch_json('/usuarios/' + uid, status=404, params=datos)
+        
+        self.assertEqual(respuesta.status_int, 404)
+
+    def test_parchado_usuarios_verificacion(self):
+        datos = {'corpus': {'sn': 'Mendoza Castro', 'givenName': 'Anita'}}
+        self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos)
+
+        respuesta = self.testapp.get('/usuarios/' + self.uid, status=200)
+
+        self.assertEqual(respuesta.json_body['data']['sn'], datos['corpus']['sn'])
+
+    def test_parchado_usuarios_nopermitido_clave(self):
+        datos = {'corpus': {'uid': 'cambioUid'}}
+        self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos)
+       
+        respuesta = self.testapp.get('/usuarios/' + self.uid, status=200)
+
+        self.assertEqual(respuesta.json_body['data']['uid'], self.uid) 
+
+    def test_parchado_usuarios_nopermitido_clave(self):
+        clave_falsa = 'espejismo'
+        datos = {'corpus': {clave_falsa: 'Clave fantasmal'}}
+        self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos)
+       
+        respuesta = self.testapp.get('/usuarios/' + self.uid, status=200)
+
+        self.assertFalse(clave_falsa in respuesta.json_body['data']) 
+    
+
+    def test_parchado_usuarios_agregando_clave(self):
+        datos = {'corpus': {'title': 'sobrerero'}}
+        self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos)
+        
+        respuesta = self.testapp.get('/usuarios/' + self.uid, status=200)
+        
+        self.assertEqual(respuesta.json_body['data']['title'], datos['corpus']['title'])
+        

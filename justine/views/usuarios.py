@@ -41,7 +41,7 @@ def usuarios_creacion(peticion):
     except Exception as e:
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
-        return exception.exception_response(500)
+        return exception.HTTPInternalServerError()
 
     # La siguiente parece ser LA FORMA de responder en este caso
     # Sin embargo, mi response en este caso esta vació cuando se llama con un Request creado vacío
@@ -63,11 +63,11 @@ def usuarios_borrado(peticion):
         mensaje = usuarios.borrado(uid)
     except ValueError as e:
         # Si el usuario no existe, devolvemos un 404 Not Found
-        return exception.exception_response(404)
+        return exception.HTTPNotFound()
     except Exception as e:
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
-        return exception.exception_response(500)
+        return exception.HTTPInternalServerError()
 
     return {'mensaje': mensaje}
 
@@ -89,12 +89,30 @@ def usuarios_actualizacion(peticion):
         mensaje = usuarios.actualizacion(uid, contenido)
     except ValueError as e:
         # Si el usuario no existe, devolvemos un 404 Not Found
-        return exception.exception_response(404)
+        return exception.HTTPNotFound()
     except Exception as e:
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
-        print "Fallo"
-        print e.args
-        return exception.exception_response(500)
+        return exception.HTTPInternalServerError()
         
     return {'mensaje': mensaje}
+
+@view_config(route_name='usuarios_parchado', renderer='json')
+def usuarios_parchado(peticion):
+    # Colander debe entrar en acción en este punto, las claves deben verificarse sin obligatoriedad
+    
+    try:
+        uid = peticion.matchdict['usuario']
+        contenido = peticion.json_body['corpus']
+    except Exception as e:
+        return exception.HTTPBadRequest()
+
+    usuarios = Usuarios()
+    
+    try:
+        mensaje = usuarios.cambiado(uid, contenido)
+    except ValueError as e:
+        # Si el usuario no existe, devolvemos un 404 Not Found
+        return exception.HTTPNotFound()
+
+    return {'mensaje': mensaje} 

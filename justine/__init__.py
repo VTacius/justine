@@ -11,5 +11,6 @@ def main(global_config, **settings):
     config.add_route('usuarios_creacion', '/usuarios', request_method='POST')
     config.add_route('usuarios_borrado', '/usuarios/{usuario}', request_method='DELETE')
     config.add_route('usuarios_actualizacion', '/usuarios/{usuario}', request_method='PUT')
+    config.add_route('usuarios_parchado', '/usuarios/{usuario}', request_method='PATCH')
     config.scan()
     return config.make_wsgi_app()
