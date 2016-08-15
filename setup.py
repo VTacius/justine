@@ -14,7 +14,8 @@ requires = [
     'pyramid_debugtoolbar',
     'waitress',
     'nose',
-    'webtest'
+    'webtest',
+    'pyramid_jwt'
     ]
 
 tests_require = [

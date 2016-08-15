@@ -4,14 +4,37 @@ from pyramid.view import view_config
 from pyramid import httpexceptions as exception
 from ..juliette.usuarios import Usuarios
 
-@view_config(route_name='usuarios_listado', renderer='json')
+# Debido a la configuración de un sistema de autenticación
+from pyramid.security import Authenticated
+
+@view_config(route_name='logueo', renderer='json')
+def login(peticion):
+    datos = peticion.json_body
+    usuario = datos['username']
+    password = datos['password']
+    
+    # Acá va una función que hace magia, pero después, por favor
+    user_id = usuario if usuario == password else False
+    if user_id:
+        return {
+            'result': 'OK',
+            'token': peticion.create_jwt_token(user_id)
+        }
+    else:
+        return {
+            'result': 'ERROR',
+        }
+
+@view_config(route_name='usuarios_listado', renderer='json', permission='listar')
 def usuarios_listado(peticion):
+    # Estamos probando seguridad
     usuarios = Usuarios()
     contenido = usuarios.listar()[:150]
     return contenido
 
-@view_config(route_name='usuarios_detalle', renderer='json')
+@view_config(route_name='usuarios_detalle', renderer='json', permission='detallar')
 def usuarios_detalle(peticion):
+    
     # ¿Debe Colander entrar en acción en este punto?
     uid = peticion.matchdict['usuario']
     
@@ -20,7 +43,6 @@ def usuarios_detalle(peticion):
         contenido = {'data': usuarios.detalle(uid)}
     except Exception as e:
         return exception.HTTPNotFound()
-
     return contenido
     
 @view_config(route_name="usuarios_creacion", renderer='json')
