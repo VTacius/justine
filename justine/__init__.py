@@ -1,3 +1,4 @@
+# coding: utf-8
 from pyramid.config import Configurator
 
 # Configuramos seguridad
@@ -12,11 +13,11 @@ def main(global_config, **settings):
     # Configuramos seguridad
     config.set_authorization_policy(ACLAuthorizationPolicy())
     config.include('pyramid_jwt')
-    config.set_jwt_authentication_policy('c3cr3t0', http_header='www-authorization', callback=groupfinder)
+    # Expira luego de 24 horas. Me pareció lo más indicado
+    config.set_jwt_authentication_policy('c3cr3t0', http_header='www-authorization', callback=groupfinder, expiration=86400)
     # Rutas
     # Rutas para objeto ''usuarios''
-    config.add_route('home', '/')
-    config.add_route('logueo', '/login', request_method='POST')
+    config.add_route('logueo', '/auth/login', request_method='POST')
     config.add_route('usuarios_listado', '/usuarios', request_method='GET')
     config.add_route('usuarios_detalle', '/usuarios/{usuario}', request_method='GET')
     config.add_route('usuarios_creacion', '/usuarios', request_method='POST')

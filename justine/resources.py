@@ -5,9 +5,9 @@ class Root(object):
     __acl__ = [
         (Allow, Everyone, 'listar'),
         (Allow, Authenticated, 'detallar'),
-        (Allow, 'groups:admins', 'creacion'),
-        (Allow, 'groups:editors', 'actualizacion'),
-        (Allow, 'groups:admins', 'borrado'),
+        (Allow, 'administrador', 'creacion'),
+        (Allow, 'administrador', 'actualizacion'),
+        (Allow, 'administrador', 'borrado'),
         (Allow, Authenticated, 'modificacion')
     ]
 
