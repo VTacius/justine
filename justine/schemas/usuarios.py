@@ -53,7 +53,6 @@ class Esquema():
 
         return esquema
 
-
 class EsquemaCreacion(Esquema):
     """
     Requeridos: uid
@@ -73,8 +72,8 @@ class EsquemaActualizacion(Esquema):
     """
     Va resultando que incluso acá son todas opcionales
     """
-    def __init__(self):
-        Esquema.__init__(self)
+    def __init__(self, *claves_requeridas):
+        Esquema.__init__(self, *claves_requeridas)
         self.validador = Validaciones(self.esquema)
 
     def validacion(self, contenido):
