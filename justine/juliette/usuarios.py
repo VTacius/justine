@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import datetime
 # Las siguientes librerías son parte del core actual, podrían volverse innecesarias cuando use la
 # API de Samba4
 from json import load, dump
@@ -9,6 +10,23 @@ class Usuarios:
    
     def __init__(self):
         self.direccion = getcwd()
+    
+    def esquema(self, contenido):
+        """
+        En realidad, suponemos que el trabajo de validación principal fue hecho de cara a la vista
+        de nuestra API
+        Sin embargo, convertimos fecha a algo serializable y desechamos todos aquellos datos que se nos envíen vacíos,
+        tal expresa colander a los datos opcionales
+        No espero complicar demasiado la validación respecto a datos opcionales y no, de eso se debe encargar el cliente
+        """
+        resultado = {}
+        for clave in contenido:
+            if isinstance(contenido[clave], datetime.date):
+                resultado[clave] = contenido[clave].isoformat()
+            elif contenido[clave]:
+               resultado[clave] = contenido[clave] 
+        
+        return resultado
 
     def listar(self):
         """
@@ -57,7 +75,7 @@ class Usuarios:
         except Exception as e:
             # TODO: Estoy pensando que todo esto deberia ir a logging, en lugar de cualquier otra parte
             #raise Exception()
-            raise Exception(e.args)
+            raise Exception( contenido)
         
         # Debería retornar, de hecho, la URL del nuevo objeto creado
         return "/usuarios/" + uid 
@@ -92,7 +110,7 @@ class Usuarios:
             fichero = open(direccion)
             contenido_original = load(fichero)
         except Exception as e:
-            raise ValueError
+            raise IOError
 
         # Comprobamos que el contenido recibido tenga el mismo contenido del objeto original
         claves = contenido_original.keys()
@@ -111,7 +129,7 @@ class Usuarios:
 
         return uid + " Actualizado"
     
-    def cambiado(self, uid, contenido):
+    def modificacion(self, uid, contenido):
         direccion = self.direccion + '/datos.d/usuarios_detalle_' + uid + '.json'
 
         # Verifica que el usuario existe

@@ -15,7 +15,9 @@ requires = [
     'waitress',
     'nose',
     'webtest',
-    'pyramid_jwt'
+    'pyramid_jwt',
+    'colander', 
+    'cerberus'
     ]
 
 tests_require = [

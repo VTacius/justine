@@ -4,6 +4,11 @@ from pyramid.view import view_config
 from pyramid import httpexceptions as exception
 from ..juliette.usuarios import Usuarios
 
+from cerberus import Validator, ValidationError
+from ..schemas.usuarios import EsquemaUsuario
+
+import logging
+log = logging.getLogger('justine')
 
 @view_config(route_name='usuarios_listado', renderer='json', permission='listar')
 def usuarios_listado(peticion):
@@ -14,7 +19,6 @@ def usuarios_listado(peticion):
 
 @view_config(route_name='usuarios_detalle', renderer='json', permission='detallar')
 def usuarios_detalle(peticion):
-    
     # ¿Debe Colander entrar en acción en este punto?
     uid = peticion.matchdict['usuario']
     
@@ -27,14 +31,19 @@ def usuarios_detalle(peticion):
     
 @view_config(route_name="usuarios_creacion", renderer='json')
 def usuarios_creacion(peticion):
-    # Colander debe entrar en acción en este punto
+   
+    # Validando datos recibidos 
+    v = EsquemaUsuario.obtener('creacion', 'uid', 'givenName', 'o', 'sn')
     try:
-        contenido = peticion.json_body['corpus']
-    except Exception as e:
+        contenido = v.validacion(peticion.json_body['corpus'])
+    except ValidationError as e:
+        return exception.HTTPBadRequest(e.args)
+    except KeyError as e:
         return exception.HTTPBadRequest()
 
     usuarios = Usuarios()
-    # Es nuestra librería la que puede decirnos que el usuario ya existe o no
+    
+    # Realizamos la operacion Creacion de Usuarios mediante la librería
     try:
         mensaje = usuarios.creacion(contenido)
     except IOError as e:
@@ -57,10 +66,13 @@ def usuarios_creacion(peticion):
 
 @view_config(route_name='usuarios_borrado', renderer='json')
 def usuarios_borrado(peticion):
-    # Colander debe entrar en acción en este punto
-    uid = peticion.matchdict['usuario'] 
     
+    # Sin datos recibidos, no validación
+    uid = peticion.matchdict['usuario'] 
+     
     usuarios = Usuarios()
+    
+    # Realizamos la operacion Borrado de Usuarios mediante la librería
     try:
         mensaje = usuarios.borrado(uid)
     except ValueError as e:
@@ -75,21 +87,26 @@ def usuarios_borrado(peticion):
 
 @view_config(route_name='usuarios_actualizacion', renderer='json')
 def usuarios_actualizacion(peticion):
-    # Colander definitivamente debe entrar en acción en este punto
-
+    
+    # Validando datos recibidos
+    v = EsquemaUsuario.obtener('actualizacion', 'uid')
     try:
         uid = peticion.matchdict['usuario']
         contenido = peticion.json_body['corpus']
         # El corpus debe estar completo, y coincidir con el {usuario} que se peticiona a PUT
         if uid != contenido['uid']:
-            raise Exception
-    except Exception as e:
+            raise KeyError
+    except ValidationError as e:
+        return exception.HTTPBadRequest(e.args)
+    except KeyError as e:
         return exception.HTTPBadRequest()
 
     usuarios = Usuarios()
+
+    # Realizamos la operacion de Actualización de Usuarios mediante la librería
     try:
         mensaje = usuarios.actualizacion(uid, contenido)
-    except ValueError as e:
+    except IOError as e:
         # Si el usuario no existe, devolvemos un 404 Not Found
         return exception.HTTPNotFound()
     except Exception as e:
@@ -99,8 +116,8 @@ def usuarios_actualizacion(peticion):
         
     return {'mensaje': mensaje}
 
-@view_config(route_name='usuarios_parchado', renderer='json')
-def usuarios_parchado(peticion):
+@view_config(route_name='usuarios_modificacion', renderer='json')
+def usuarios_modificacion(peticion):
     # Colander debe entrar en acción en este punto, las claves deben verificarse sin obligatoriedad
     
     try:
@@ -112,7 +129,7 @@ def usuarios_parchado(peticion):
     usuarios = Usuarios()
     
     try:
-        mensaje = usuarios.cambiado(uid, contenido)
+        mensaje = usuarios.modificacion(uid, contenido)
     except ValueError as e:
         # Si el usuario no existe, devolvemos un 404 Not Found
         return exception.HTTPNotFound()
