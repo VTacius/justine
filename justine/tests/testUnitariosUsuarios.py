@@ -4,6 +4,9 @@ from unittest import TestCase
 from pyramid import testing
 from json import dumps
 
+import logging
+log = logging.getLogger('justine')
+
 class Listado(TestCase):
     def setUp(self):
         self.maxDiff =  None
@@ -36,24 +39,24 @@ class Detalle(TestCase):
         peticion = testing.DummyRequest
         peticion.matchdict = {'usuario': 'alortiz'}
         respuesta = usuarios_detalle(peticion)
-        self.assertEqual(respuesta['data']['givenName'], 'Alexander')
+        self.assertEqual(respuesta['mensaje']['givenName'], 'Alexander')
 
     def test_usuarios_detalle_contador(self):
         from ..views.usuarios import usuarios_detalle
         peticion = testing.DummyRequest
         peticion.matchdict = {'usuario': 'alortiz'}
         respuesta = usuarios_detalle(peticion)
-        self.assertTrue('data' in respuesta)
+        self.assertTrue('mensaje' in respuesta)
 
 class Creacion(TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.uid = "alortiz"
         self.datos = {"corpus": {"uid": self.uid, "sambaAcctFlags": True, "dui": "123456789-0", "title": "Gerente de Oficina", 
-            "grupos": ["1003", "1039", "1034"], "usoBuzon": "150MB", "fecha": "01/11/1980", "mail": "opineda@salud.gob.sv", 
+            "grupos": [1003, 1039, 1034], "usoBuzon": 150, "fecha": "1980-11-02", "mail": "opineda@salud.gob.sv", 
             "respuesta": "La misma de siempre", "loginShell": "false", "pregunta": "¿Cuál es mi pregunta?", "buzonStatus": True, 
-            "grupo": "512", "nit": "4654-456546-142-3", "telephoneNumber": "7459", "cuentaStatus": True, "volumenBuzon": "500MB", 
-            "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}, "jvs": {"estado": True, "valor": None}, 
+            "grupo": 512, "nit": "4654-456546-142-3", "telephoneNumber": "7459", "cuentaStatus": True, "volumenBuzon": 500, 
+            "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}, "jvs": {"estado": False, "valor": None}, 
             "sn": "Quintanilla", "ou": "Unidad Financiera Institucional", "givenName": "Elida", "userPassword": "Abc_9999"}}
 
     def tearDown(self):
@@ -110,10 +113,10 @@ class Borrado(TestCase):
         self.config = testing.setUp()
         self.uid = "lmulato"
         self.datos = {"corpus": {"uid": self.uid, "sambaAcctFlags": True, "dui": "123456789-0", "title": "Gerente de Oficina", 
-            "grupos": ["1003", "1039", "1034"], "usoBuzon": "150MB", "fecha": "01/11/1980", "mail": "opineda@salud.gob.sv", 
+            "grupos": [1003, 1039, 1034], "usoBuzon": 150, "fecha": "1980-11-02", "mail": "opineda@salud.gob.sv", 
             "respuesta": "La misma de siempre", "loginShell": "false", "pregunta": "¿Cuál es mi pregunta?", "buzonStatus": True, 
-            "grupo": "512", "nit": "4654-456546-142-3", "telephoneNumber": "7459", "cuentaStatus": True, "volumenBuzon": "500MB", 
-            "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}, "jvs": {"estado": True, "valor": None}, 
+            "grupo": 512, "nit": "4654-456546-142-3", "telephoneNumber": "7459", "cuentaStatus": True, "volumenBuzon": 500, 
+            "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}, "jvs": {"estado": False, "valor": None}, 
             "sn": "Mulato", "ou": "Unidad Financiera Institucional", "givenName": "Lorena", "userPassword": "Abc_9999"}}
         
         # Creo que esto es de lo peor que puedo hacer: Usar métodos más funcionales que unitarios
@@ -162,10 +165,10 @@ class Actualizacion(TestCase):
         self.config = testing.setUp()
         self.uid = "lmulato"
         self.datos = {"corpus": {"uid": self.uid, "sambaAcctFlags": True, "dui": "123456789-0", "title": "Gerente de Oficina", 
-            "grupos": ["1003", "1039", "1034"], "usoBuzon": "150MB", "fecha": "01/11/1980", "mail": "opineda@salud.gob.sv", 
+            "grupos": [1003, 1039, 1034], "usoBuzon": 150, "fecha": "1980-11-02", "mail": "opineda@salud.gob.sv", 
             "respuesta": "La misma de siempre", "loginShell": "false", "pregunta": "¿Cuál es mi pregunta?", "buzonStatus": True, 
-            "grupo": "512", "nit": "4654-456546-142-3", "telephoneNumber": "7459", "cuentaStatus": True, "volumenBuzon": "500MB", 
-            "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}, "jvs": {"estado": True, "valor": None}, 
+            "grupo": 512, "nit": "4654-456546-142-3", "telephoneNumber": "7459", "cuentaStatus": True, "volumenBuzon": 500, 
+            "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}, "jvs": {"estado": False, "valor": None}, 
             "sn": "Mulato", "ou": "Unidad Financiera Institucional", "givenName": "Lorena", "userPassword": "Abc_9999"}}
         
         # Creo que esto es de lo peor que puedo hacer: Usar métodos más funcionales que unitarios
@@ -192,8 +195,10 @@ class Actualizacion(TestCase):
     def test_usuarios_actualizacion(self):
         from ..views.usuarios import usuarios_actualizacion
         from pyramid.request import Request
-
-        datos = dumps({'corpus': {'uid': self.uid, 'sn':'Mendoza', 'givenName': 'Ana'}})
+        data = self.datos
+        data['corpus']['sn'] = 'Mendoza'
+        data['corpus']['givenName'] = 'Ana'
+        datos = dumps(data)
  
         peticion = Request.blank('', {}, body = datos)
         peticion.matchdict = {'usuario': self.uid}
@@ -262,14 +267,14 @@ class Actualizacion(TestCase):
 
         respuesta = usuarios_detalle(peticion)
 
-        self.assertEqual(respuesta['data']['sn'], sn)
+        self.assertEqual(respuesta['mensaje']['sn'], sn)
         
-class Parchado(TestCase):
+class Modificacion(TestCase):
     @classmethod
     def setUpClass(self):
         self.config = testing.setUp()
         self.uid = 'jabdalah'
-        self.datos = {'corpus': {'uid': self.uid, 'sn':'Mendoza', 'givenName': 'Ana'}}
+        self.datos = {'corpus': {'uid': self.uid, 'sn':'Mendoza', 'givenName': 'Ana', "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}}}
       
         # Creo que esto es de lo peor que puedo hacer: Usar métodos más funcionales que unitarios
         # en un test unitario, sin embargo es la única forma de sobrepasar el problema
@@ -291,35 +296,40 @@ class Parchado(TestCase):
 
         usuarios_borrado(peticion)
 
-    def test_usuarios_parchado(self):
-        from ..views.usuarios import usuarios_parchado
+    def test_usuarios_modificacion(self):
+        from ..views.usuarios import usuarios_modificacion
         from pyramid.request import Request
 
-        datos = {'corpus': {'sn': 'Mendoza Castro', 'givenName': 'Anita'}}
+        datos = {'corpus': {'uid': self.uid, 'sn': 'Mendoza Castro', 'givenName': 'Anita'}}
         datos_json = dumps(datos)
         peticion = Request.blank('', {}, body=datos_json)
         peticion.matchdict = {'usuario': self.uid}
 
-        respuesta = usuarios_parchado(peticion)
-
+        respuesta = usuarios_modificacion(peticion)
         self.assertEqual(respuesta['mensaje'], self.uid + " Parchado")
 
-    def test_usuarios_parchado_noexistente(self):
-        from ..views.usuarios import usuarios_parchado
+    def test_usuarios_modificacion_noexistente(self):
+        from ..views.usuarios import usuarios_modificacion
         from pyramid.request import Request
         from pyramid.httpexceptions import HTTPNotFound
         
+        data = self.datos
+        
         uid = 'fitzcarraldo'        
-        datos = dumps({'corpus': {'sn': 'Mendoza Castro', 'givenName': 'Anita'}})
+        data['corpus']['uid'] = uid 
+        data['corpus']['sn'] = 'Mendoza Castro'
+        data['corpus']['givenName'] = 'Anita'
+        datos = dumps(data)
+        
         peticion =  Request.blank('', {}, body = datos)
         peticion.matchdict = {'usuario': uid}
 
-        respuesta = usuarios_parchado(peticion)
+        respuesta = usuarios_modificacion(peticion)
         
         self.assertEqual(type(respuesta), HTTPNotFound)
 
-    def test_usuarios_parchado_peticion_malformada(self):
-        from ..views.usuarios import usuarios_parchado
+    def test_usuarios_modificacion_peticion_malformada(self):
+        from ..views.usuarios import usuarios_modificacion
         from pyramid.request import Request
         from pyramid.httpexceptions import HTTPBadRequest
 
@@ -328,6 +338,6 @@ class Parchado(TestCase):
         peticion = Request.blank('', {}, body=datos)
         peticion.matchdict = {'usuario': self.uid}
         
-        respuesta = usuarios_parchado(peticion)
+        respuesta = usuarios_modificacion(peticion)
 
         self.assertEqual(type(respuesta),  HTTPBadRequest)

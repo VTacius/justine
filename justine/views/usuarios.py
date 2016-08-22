@@ -68,6 +68,8 @@ def usuarios_creacion(peticion):
     v = EsquemaUsuario.obtener('creacion', 'uid', 'givenName', 'o', 'sn')
     try:
         contenido = v.validacion(peticion.json_body['corpus'])
+    except TypeError as e:
+        return exception.HTTPBadRequest()
     except ValidationError as e:
         return exception.HTTPBadRequest(e.args)
     except KeyError as e:
@@ -107,7 +109,9 @@ def usuarios_actualizacion(peticion):
         contenido = v.validacion(peticion.json_body['corpus'])
         # El corpus debe estar completo, y coincidir con el {usuario} que se peticiona a PUT
         if uid != contenido['uid']:
-            raise KeyError
+            raise KeyError('Usuarios de contenido y petición no coinciden')
+    except TypeError as e:
+        return exception.HTTPBadRequest()
     except ValidationError as e:
         return exception.HTTPBadRequest(e.args)
     except KeyError as e:
@@ -143,7 +147,7 @@ def usuarios_modificacion(peticion):
         contenido = peticion.json_body['corpus']
         # El corpus debe estar completo, y coincidir con el {usuario} que se peticiona a PUT
         if uid != contenido['uid']:
-            raise KeyError
+            raise KeyError('Usuarios de contenido y petición no coinciden')
     except ValidationError as e:
         return exception.HTTPBadRequest(e.args)
     except KeyError as e:

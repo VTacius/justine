@@ -14,9 +14,8 @@ class Esquema():
         self.entero = {'type': 'integer'}
         self.dui = {'type': 'string', 'regex': '^\d{9}-\d{1}$'}
         self.nit = {'type': 'string', 'regex': '^\d{4}-\d{6}-\d{3}-\d{1}$'}
-        self.jvs = {'type': 'string', 'regex': '^\d{1,12}$'}
         self.correo = {'type': 'string', 'regex': "(?i)^[A-Z0-9._%!#$%&'*+-/=?^_`{|}~()]+@[A-Z0-9]+([.-][A-Z0-9]+)*\.[A-Z]{2,22}$"}
-        self.telefono = {'type': 'string', 'regex': "^\d{4}(-*\d{4})*$/"}
+        self.telefono = {'type': 'string', 'regex': "^\d{4}(-*\d{4})*$"}
         # TODO: Esta puede mejorar, y tiene que estar en conformidad a lo que digamos en el cliente
         self.password = {'type': 'string', 'regex': "^(?=.*[A-Z])(?=.*\d)(?=.*[\.|_|#]).{8,}$"}
     
@@ -28,7 +27,7 @@ class Esquema():
         self.esquema["givenName"] = self.cadena.copy()
         self.esquema["grupo"] = self.entero.copy()
         self.esquema["grupos"] = {'type': 'list', 'schema': self.entero.copy()}
-        self.esquema["jvs"] = {"type": "dict", "schema": {"estado": self.boleano.copy(), "valor": self.cadena.copy()}}
+        self.esquema["jvs"] = {"type": "jvs"}
         self.esquema["loginShell"] = self.cadena.copy()
         self.esquema["mail"] = self.correo.copy()
         self.esquema["nit"] = self.nit.copy()
@@ -44,7 +43,6 @@ class Esquema():
         self.esquema["userPassword"] = self.password.copy()
         self.esquema["usoBuzon"] = self.entero.copy()
         self.esquema["volumenBuzon"] = self.entero.copy()
-        log.error(claves_requeridas)        
         self.esquema = self._requeridor(self.esquema, claves_requeridas) 
 
     def _requeridor(self, esquema, claves_requeridas):
@@ -83,8 +81,15 @@ class EsquemaActualizacion(Esquema):
             raise ValidationError(self.validador.errors)
  
 class EsquemaModificacion(Esquema):
-    def __init__(self):
+    def __init__(self, *claves_requeridas):
         Esquema.__init__(self, *claves_requeridas)
+        self.validador = Validaciones(self.esquema)
+    
+    def validacion(self, contenido):
+        if self.validador.validate(contenido):
+            return contenido
+        else:
+            raise ValidationError(self.validador.errors)
 
 # Necesito usar un patrón (No recuerdo el nombre pero si que hace) 
 # porque el objeto usuario a crear depende de la vista que nos envíe el json

@@ -104,7 +104,7 @@ class Usuarios:
         claves_contenido_nuevo = contenido.keys()
         for clave in claves_contenido_original:
             if not clave in claves_contenido_nuevo:
-                raise KeyError()
+                raise KeyError('Faltan claves para actualizar')
 
         # Realizamos la operacion Actualización de Usuario
         try:
