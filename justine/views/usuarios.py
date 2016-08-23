@@ -64,18 +64,21 @@ def usuarios_borrado(peticion):
 @view_config(route_name="usuarios_creacion", renderer='json')
 def usuarios_creacion(peticion):
    
+    # Luego vemos si es posible sobreescribir esto de ser necesario
+    respuesta = peticion.response
+    
     # Validando datos recibidos 
     v = EsquemaUsuario.obtener('creacion', 'uid', 'givenName', 'o', 'sn')
     try:
         contenido = v.validacion(peticion.json_body['corpus'])
     except TypeError as e:
-        return exception.HTTPBadRequest()
+        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
     except ValidationError as e:
-        return exception.HTTPBadRequest(e.args)
+        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
     except KeyError as e:
-        return exception.HTTPBadRequest()
+        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
     except ValueError as e:
-        return exception.HTTPBadRequest()
+        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
 
     usuarios = Usuarios()
     
@@ -84,20 +87,28 @@ def usuarios_creacion(peticion):
         mensaje = usuarios.creacion(contenido)
     except IOError as e:
         # Si el usuario existe, devolvemos un 409 Conflict
-        return exception.HTTPConflict()
+        return exception.HTTPConflict(headers=(('Access-Control-Allow-Origin', '*'),))
     except Exception as e:
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
-        return exception.HTTPInternalServerError()
+        return exception.HTTPInternalServerError(headers=(('Access-Control-Allow-Origin', '*'),))
 
     # La siguiente parece ser LA FORMA de responder en este caso
     # Sin embargo, mi response en este caso esta vació cuando se llama con un Request creado vacío
-    # respuesta = peticion.response
     peticion.response.status_code = 201
-    peticion.response.headerlist = [
-         ('Location', str(mensaje)),
-     ]
+    peticion.response.headerlist.extend(
+        (
+            ('Location', str(mensaje)),
+        )
+    )
     return {'mensaje': mensaje}
+
+@view_config(route_name='usuarios_creacion_options', renderer='json')
+def usuarios_creacion_options(peticion):
+    respuesta = peticion.response
+    log.error('Cabeceras para respuesta en option')
+    log.error(respuesta.headerlist)
+    return {'mensaje': 'nada'}
 
 @view_config(route_name='usuarios_actualizacion', renderer='json')
 def usuarios_actualizacion(peticion):
