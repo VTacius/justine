@@ -2,9 +2,10 @@
 
 from pyramid.view import view_config
 from pyramid import httpexceptions as exception
+
 from ..juliette.usuarios import Usuarios
 
-from cerberus import Validator, ValidationError
+from cerberus import ValidationError
 from ..schemas.usuarios import EsquemaUsuario
 
 import logging
@@ -17,14 +18,15 @@ def usuarios_listado(peticion):
     contenido = usuarios.listar()[:150]
     return contenido
 
-@view_config(route_name='usuarios_detalle', renderer='json', permission='detallar')
+#@view_config(route_name='usuarios_detalle', renderer='json', permission='detallar')
+@view_config(route_name='usuarios_detalle', renderer='json')
 def usuarios_detalle(peticion):
     
     # Validando datos recibidos
     try:
         uid = peticion.matchdict['usuario'] 
     except KeyError as e:
-        return exception.HTTPBadRequest()
+        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
     
     usuarios = Usuarios()
 
@@ -32,9 +34,9 @@ def usuarios_detalle(peticion):
     try:
         contenido = usuarios.detalle(uid)
     except IOError as e:
-        return exception.HTTPNotFound()
+        return exception.HTTPNotFound(headers=(('Access-Control-Allow-Origin', '*'),))
     except Exception as e:
-        return exception.HTTPInternalServerError()
+        return exception.HTTPInternalServerError(headers=(('Access-Control-Allow-Origin', '*'),))
     return {'mensaje': contenido}
 
 @view_config(route_name='usuarios_borrado', renderer='json')

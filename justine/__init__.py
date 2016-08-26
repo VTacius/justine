@@ -34,7 +34,11 @@ def main(global_config, **settings):
     config.include('pyramid_jwt')
     # Expira luego de 24 horas. Me pareció lo más indicado
     config.set_jwt_authentication_policy('c3cr3t0', http_header='www-authorization', callback=groupfinder, expiration=86400)
-    # Rutas
+    # Rutas 
+    # Rutas para objeto ''helpers''
+    config.add_route('helpers_establecimientos', '/helpers/establecimientos', request_method='GET')
+    # Rutas para objeto ''grupos''
+    config.add_route('grupos_listado', '/grupos', request_method='GET')
     # Rutas para objeto ''usuarios''
     config.add_route('logueo', '/auth/login', request_method='POST')
     config.add_route('usuarios_listado', '/usuarios', request_method='GET')
