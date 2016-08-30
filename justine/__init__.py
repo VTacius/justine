@@ -47,6 +47,7 @@ def main(global_config, **settings):
     config.add_route('usuarios_creacion_options', '/usuarios', request_method='OPTIONS')
     config.add_route('usuarios_borrado', '/usuarios/{usuario}', request_method='DELETE')
     config.add_route('usuarios_actualizacion', '/usuarios/{usuario}', request_method='PUT')
+    config.add_route('usuarios_actualizacion_options', '/usuarios/{usuario}', request_method='OPTIONS')
     config.add_route('usuarios_modificacion', '/usuarios/{usuario}', request_method='PATCH')
     config.scan()
     config.set_request_factory(request_factory)

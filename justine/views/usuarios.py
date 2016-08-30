@@ -124,13 +124,13 @@ def usuarios_actualizacion(peticion):
         if uid != contenido['uid']:
             raise KeyError('Usuarios de contenido y petición no coinciden')
     except TypeError as e:
-        return exception.HTTPBadRequest()
+        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
     except ValidationError as e:
-        return exception.HTTPBadRequest(e.args)
+        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
     except KeyError as e:
-        return exception.HTTPBadRequest()
+        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
     except ValueError as e:
-        return exception.HTTPBadRequest()
+        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
 
     usuarios = Usuarios()
 
@@ -139,16 +139,28 @@ def usuarios_actualizacion(peticion):
         mensaje = usuarios.actualizacion(uid, contenido)
     except KeyError as e:
         # Si contenido enviado no tiene los datos del original
-        return exception.HTTPBadRequest()
+        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
     except IOError as e:
         # Si el usuario no existe, devolvemos un 404 Not Found
-        return exception.HTTPNotFound()
+        return exception.HTTPNotFound(headers=(('Access-Control-Allow-Origin', '*'),))
     except Exception as e:
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
-        return exception.HTTPInternalServerError()
+        return exception.HTTPInternalServerError(headers=(('Access-Control-Allow-Origin', '*'),))
         
     return {'mensaje': mensaje}
+
+@view_config(route_name='usuarios_actualizacion_options', renderer='json')
+def usuarios_actualizacion_options(peticion):
+    respuesta = peticion.response
+    log.error('Cabeceras para respuesta en option')
+    peticion.response.headerlist.extend(
+        (
+           ('Access-Control-Allow-Methods', 'PUT'), 
+        )
+    )
+    log.error(respuesta.headerlist)
+    return {'mensaje': 'nada'}
 
 @view_config(route_name='usuarios_modificacion', renderer='json')
 def usuarios_modificacion(peticion):

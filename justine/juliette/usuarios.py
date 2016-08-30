@@ -4,7 +4,7 @@ import datetime
 # Las siguientes librerías son parte del core actual, podrían volverse innecesarias cuando use la
 # API de Samba4
 from json import load, dump
-from os import getcwd, remove
+from os import getcwd, remove, listdir
 
 # No tendría sentido que manejemos logggin desde tan abajo de la aplicación, que no sea en desarrollo
 import logging
@@ -19,10 +19,15 @@ class Usuarios:
         """
         Acá ocurrirá la más simple de todas las busquedas posibles: No más de 250 usuarios 
         """
-        direccion = self.direccion + '/datos.d/usuarios_listado.json'
-        fichero = open(direccion)
-        contenido = load(fichero)
-        return contenido[:250]
+        direccion = self.direccion + '/datos.d/'
+        ficheros = listdir(direccion)
+        usuarios = []
+        for fichero in ficheros:
+            if fichero.find('usuarios_detalle') == 0:
+                fichero = open(direccion + '/' + fichero)
+                contenido = load(fichero)
+                usuarios.append(contenido)
+        return usuarios
 
     def detalle(self, uid):
         """
