@@ -22,4 +22,19 @@ class Establecimientos:
         direccion = self.direccion + '/datos.d/helpers_establecimientos.json'
         fichero = open(direccion)
         contenido = load(fichero)
-        return contenido[:250]
+        return contenido
+
+class Oficinas:
+    
+    def __init__(self):
+        self.direccion = getcwd()
+
+    def listar(self, establecimiento):
+        """
+        Acá ocurrirá la más simple de todas las busquedas posibles: No más de 250 usuarios 
+        """
+        direccion = self.direccion + '/datos.d/helpers_oficinas.d/' + establecimiento + '.json'
+        fichero = open(direccion)
+        contenido = load(fichero)
+        return contenido
+

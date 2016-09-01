@@ -26,7 +26,9 @@ class Usuarios:
             if fichero.find('usuarios_detalle') == 0:
                 fichero = open(direccion + '/' + fichero)
                 contenido = load(fichero)
-                usuarios.append(contenido)
+                # No importa el origen, es necesario asegurarse de limitar las claves que enviamos
+                contenido_lite = { clave: contenido[clave] for clave in ['ou', 'givenName', 'sn', 'o', 'uid'] if clave in contenido }
+                usuarios.append(contenido_lite)
         return usuarios
 
     def detalle(self, uid):
@@ -109,7 +111,7 @@ class Usuarios:
         claves_contenido_nuevo = contenido.keys()
         for clave in claves_contenido_original:
             if not clave in claves_contenido_nuevo:
-                raise KeyError('Faltan claves para actualizar')
+                raise KeyError('Faltan claves para actualizar' + clave)
 
         # Realizamos la operacion Actualización de Usuario
         try:

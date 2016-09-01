@@ -37,6 +37,7 @@ def main(global_config, **settings):
     # Rutas 
     # Rutas para objeto ''helpers''
     config.add_route('helpers_establecimientos', '/helpers/establecimientos', request_method='GET')
+    config.add_route('helpers_oficinas', '/helpers/oficinas/{establecimiento}', request_method='GET')
     # Rutas para objeto ''grupos''
     config.add_route('grupos_listado', '/grupos', request_method='GET')
     # Rutas para objeto ''usuarios''
