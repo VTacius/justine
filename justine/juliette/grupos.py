@@ -23,3 +23,22 @@ class Grupos:
         fichero = open(direccion)
         contenido = load(fichero)
         return contenido[:250]
+    
+    def detalle(self, gidNumber):
+        """
+        Acá obtenemos más detalles del grupo por medio del gidNumber en base al rol del cliente
+        TODO: Verificar rol del usuario
+        """
+        # TODO: Mantengo este error porque necesito aprender a manejarlo en el cliente web
+        direccion = self.direccion + '/datos.d/grupos_detalle_' + gidNumber + '.json'
+
+        # Verifica que el grupo existe
+        try:
+            fichero = open(direccion)
+            contenido = load(fichero)
+        except IOError as e:
+            raise IOError
+        except Exception as e:
+            raise Exception(e.args)
+
+        return contenido

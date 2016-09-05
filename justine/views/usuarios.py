@@ -13,9 +13,13 @@ log = logging.getLogger('justine')
 
 @view_config(route_name='usuarios_listado', renderer='json', permission='listar')
 def usuarios_listado(peticion):
-    # Estamos probando seguridad
+    filtros = peticion.GET.dict_of_lists()
     usuarios = Usuarios()
-    contenido = usuarios.listar()[:150]
+    if filtros:
+        contenido = usuarios.busqueda(filtros) 
+    else:
+        contenido = usuarios.listar()[:150]
+
     return contenido
 
 #@view_config(route_name='usuarios_detalle', renderer='json', permission='detallar')
@@ -37,6 +41,7 @@ def usuarios_detalle(peticion):
         return exception.HTTPNotFound(headers=(('Access-Control-Allow-Origin', '*'),))
     except Exception as e:
         return exception.HTTPInternalServerError(headers=(('Access-Control-Allow-Origin', '*'),))
+
     return {'mensaje': contenido}
 
 @view_config(route_name='usuarios_borrado', renderer='json')
@@ -103,6 +108,7 @@ def usuarios_creacion(peticion):
             ('Location', str(mensaje)),
         )
     )
+
     return {'mensaje': mensaje}
 
 @view_config(route_name='usuarios_creacion_options', renderer='json')
@@ -124,12 +130,16 @@ def usuarios_actualizacion(peticion):
         if uid != contenido['uid']:
             raise KeyError('Usuarios de contenido y petición no coinciden')
     except TypeError as e:
+        log.error(e)
         return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
     except ValidationError as e:
+        log.error(e)
         return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
     except KeyError as e:
+        log.error(e)
         return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
     except ValueError as e:
+        log.error(e)
         return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
 
     usuarios = Usuarios()
@@ -138,12 +148,15 @@ def usuarios_actualizacion(peticion):
     try:
         mensaje = usuarios.actualizacion(uid, contenido)
     except KeyError as e:
+        log.error(e)
         # Si contenido enviado no tiene los datos del original
         return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
     except IOError as e:
+        log.error(e)
         # Si el usuario no existe, devolvemos un 404 Not Found
         return exception.HTTPNotFound(headers=(('Access-Control-Allow-Origin', '*'),))
     except Exception as e:
+        log.error(e)
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
         return exception.HTTPInternalServerError(headers=(('Access-Control-Allow-Origin', '*'),))

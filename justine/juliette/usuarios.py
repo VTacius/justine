@@ -31,6 +31,25 @@ class Usuarios:
                 usuarios.append(contenido_lite)
         return usuarios
 
+    def busqueda(self, filtros):
+        if 'filtro' in filtros:
+            termino = filtros['filtro'][0]
+            direccion = self.direccion + '/datos.d/usuarios_busqueda.d/'
+            ficheros = listdir(direccion)
+            usuarios = []
+            for fichero in ficheros:
+                if fichero.find(termino) == 0:
+                    fichero = open(direccion + '/' + fichero)
+                    contenido = load(fichero)
+                    # No importa el origen, es necesario asegurarse de limitar las claves que enviamos
+                    # TODO: Agregar title sigue en discusión
+                    # TODO: De agregarse title, lo más probable es que mail y telephoneNumber le sigan
+                    contenido_lite = { clave: contenido[clave] for clave in ['ou', 'givenName', 'sn', 'title', 'o', 'uid'] if clave in contenido }
+                    usuarios.append(contenido_lite)
+        else:
+            usuarios = self.listar()
+        return usuarios
+
     def detalle(self, uid):
         """
         Acá obtenemos más detalles del usuario en base al rol del cliente

@@ -40,6 +40,7 @@ def main(global_config, **settings):
     config.add_route('helpers_oficinas', '/helpers/oficinas/{establecimiento}', request_method='GET')
     # Rutas para objeto ''grupos''
     config.add_route('grupos_listado', '/grupos', request_method='GET')
+    config.add_route('grupos_detalle', '/grupos/{grupo}', request_method='GET')
     # Rutas para objeto ''usuarios''
     config.add_route('logueo', '/auth/login', request_method='POST')
     config.add_route('usuarios_listado', '/usuarios', request_method='GET')

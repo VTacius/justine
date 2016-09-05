@@ -16,5 +16,9 @@ def oficinas_listado(peticion):
     establecimiento = peticion.matchdict['establecimiento']
 
     establecimientos = Oficinas()
-    contenido = establecimientos.listar(establecimiento)
+
+    try:
+        contenido = establecimientos.listar(establecimiento)
+    except IOError as e:
+        return exception.HTTPNotFound(headers=(('Access-Control-Allow-Origin', '*'),))
     return contenido

@@ -19,9 +19,12 @@ class Establecimientos:
         """
         Acá ocurrirá la más simple de todas las busquedas posibles: No más de 250 usuarios 
         """
-        direccion = self.direccion + '/datos.d/helpers_establecimientos.json'
-        fichero = open(direccion)
-        contenido = load(fichero)
+        try:
+            direccion = self.direccion + '/datos.d/helpers_establecimientos.json'
+            fichero = open(direccion)
+            contenido = load(fichero)
+        except IOError as e:
+            raise IOError
         return contenido
 
 class Oficinas:
