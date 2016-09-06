@@ -15,7 +15,7 @@ class Listado(TestCase):
 
     def test_usuarios_listado(self):
         respuesta = self.testapp.get('/usuarios', status=200, xhr=True)
-        self.assertEqual(respuesta.json_body[0]['givenName'], "Rodrigo Arnoldo")
+        self.assertEqual(respuesta.json_body[0]['givenName'], "Baloncesto")
 
 class Detalle(TestCase):
     def setUp(self):
@@ -45,7 +45,7 @@ class Detalle(TestCase):
         respuesta = self.testapp.get('/usuarios/alortiz', status=200, xhr=True, headers=self.token)
         atributos = respuesta.json_body['mensaje'].keys()
         claves = ["buzonStatus", "cuentaStatus", "dui", "fecha", "givenName", 
-            "grupo", "grupos", "jvs", "loginShell", "mail", "nit", "o", "ou", 
+            "grupo", "grupos", "loginShell", "mail", "nit", "o", "ou", 
             "pregunta", "respuesta", "sambaAcctFlags", "sn", "telephoneNumber", 
             "title", "uid", "userPassword", "usoBuzon", "volumenBuzon"]
         self.assertItemsEqual(sorted(atributos), sorted(claves))

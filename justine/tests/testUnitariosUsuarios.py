@@ -2,6 +2,8 @@
 
 from unittest import TestCase
 from pyramid import testing
+from pyramid.registry import Registry
+from webob.multidict import MultiDict
 from json import dumps
 
 import logging
@@ -17,13 +19,26 @@ class Listado(TestCase):
 
     def test_usuarios_listado(self):
         from ..views.usuarios import usuarios_listado
-        peticion = testing.DummyRequest()
+        from pyramid.request import Request
+
+        peticion = Request.blank('', {})
+        
+        register = Registry('testing')
+        peticion.register = register
+
         respuesta = usuarios_listado(peticion)
-        self.assertEqual(respuesta[0]['givenName'], "Rodrigo Arnoldo")
+        
+        self.assertEqual(respuesta[0]['givenName'], "Baloncesto")
     
     def test_usuarios_listado_contador(self):
         from ..views.usuarios import usuarios_listado
-        peticion = testing.DummyRequest()
+        from pyramid.request import Request
+
+        peticion = Request.blank('', {})
+
+        register = Registry('testing')
+        peticion.register = register
+        
         respuesta = usuarios_listado(peticion)
         self.assertTrue(len(respuesta) <= 250)
 
@@ -36,8 +51,14 @@ class Detalle(TestCase):
 
     def test_usuarios_detalle(self):
         from ..views.usuarios import usuarios_detalle
-        peticion = testing.DummyRequest
+        from pyramid.request import Request
+        
+        peticion = Request.blank('', {})
         peticion.matchdict = {'usuario': 'alortiz'}
+        
+        register = Registry('testing')
+        peticion.registry = register
+        
         respuesta = usuarios_detalle(peticion)
         self.assertEqual(respuesta['mensaje']['givenName'], 'Alexander')
 
@@ -51,7 +72,7 @@ class Detalle(TestCase):
 class Creacion(TestCase):
     def setUp(self):
         self.config = testing.setUp()
-        self.uid = "alortiz"
+        self.uid = "tcalcuta"
         self.datos = {"corpus": {"uid": self.uid, "sambaAcctFlags": True, "dui": "123456789-0", "title": "Gerente de Oficina", 
             "grupos": [1003, 1039, 1034], "usoBuzon": 150, "fecha": "1980-11-02", "mail": "opineda@salud.gob.sv", 
             "respuesta": "La misma de siempre", "loginShell": "false", "pregunta": "¿Cuál es mi pregunta?", "buzonStatus": True, 
@@ -60,24 +81,26 @@ class Creacion(TestCase):
             "sn": "Quintanilla", "ou": "Unidad Financiera Institucional", "givenName": "Elida", "userPassword": "Abc_9999"}}
 
     def tearDown(self):
+        from ..views.usuarios import usuarios_borrado
         self.config = testing.tearDown()
-    
-    """ 
-    Sigo sin ser capaz de crear el usuarios, el método debería ser este sin mayores inconvenientes
-    El problema consiste en que esta peticion carece del atributo registry, que sigo sin entender de donde lo saca, 
-    pero que lo hecha de menos cuando hago request.response en la vista 
-    
-    """
-    #def test_usuarios_creacion(self):
-    #    from ..views.usuarios import usuarios_creacion
-    #    from pyramid.request import Request
- 
-    #    datos = dumps(self.datos)
-    #    peticion = Request.blank('', {}, body=datos)
+        peticion = testing.DummyRequest()
+        peticion.matchdict = {'usuario': self.uid}
 
-    #    respuesta = usuarios_creacion(peticion)
+        usuarios_borrado(peticion)
+    
+    def test_usuarios_creacion(self):
+        from ..views.usuarios import usuarios_creacion
+        from pyramid.request import Request
  
-    #    self.assertEqual(respuesta, 'http://localhost/usuarios/' + self.uid)
+        datos = dumps(self.datos)
+        peticion = Request.blank('', {}, body=datos)
+
+        register = Registry('testing')
+        peticion.registry = register
+
+        respuesta = usuarios_creacion(peticion)
+ 
+        self.assertEqual(respuesta['mensaje'], '/usuarios/' + self.uid)
 
     def test_usuarios_creacion_existente(self):
         from ..views.usuarios import usuarios_creacion
@@ -89,6 +112,9 @@ class Creacion(TestCase):
         datos_json = dumps(datos) 
        
         peticion = Request.blank('', {}, body=datos_json)
+        
+        register = Registry('testing')
+        peticion.registry = register
 
         respuesta = usuarios_creacion(peticion)
  
@@ -102,6 +128,9 @@ class Creacion(TestCase):
         datos = 'Maximo daño con el mínimo esfuerzo'
 
         peticion = Request.blank('', {}, body=datos)
+        
+        register = Registry('testing')
+        peticion.registry = register
         
         respuesta = usuarios_creacion(peticion)
         

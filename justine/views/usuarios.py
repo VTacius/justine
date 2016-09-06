@@ -98,6 +98,8 @@ def usuarios_creacion(peticion):
     except Exception as e:
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
+        log.error('No puedo ver el error')
+        log.error(e.args)
         return exception.HTTPInternalServerError(headers=(('Access-Control-Allow-Origin', '*'),))
 
     # La siguiente parece ser LA FORMA de responder en este caso

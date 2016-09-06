@@ -27,7 +27,7 @@ class Usuarios:
                 fichero = open(direccion + '/' + fichero)
                 contenido = load(fichero)
                 # No importa el origen, es necesario asegurarse de limitar las claves que enviamos
-                contenido_lite = { clave: contenido[clave] for clave in ['ou', 'givenName', 'sn', 'o', 'uid'] if clave in contenido }
+                contenido_lite = { clave: contenido[clave] for clave in ['ou', 'givenName', 'sn', 'title', 'mail', 'telephoneNumber', 'o', 'uid'] if clave in contenido }
                 usuarios.append(contenido_lite)
         return usuarios
 
@@ -44,7 +44,7 @@ class Usuarios:
                     # No importa el origen, es necesario asegurarse de limitar las claves que enviamos
                     # TODO: Agregar title sigue en discusión
                     # TODO: De agregarse title, lo más probable es que mail y telephoneNumber le sigan
-                    contenido_lite = { clave: contenido[clave] for clave in ['ou', 'givenName', 'sn', 'title', 'o', 'uid'] if clave in contenido }
+                    contenido_lite = { clave: contenido[clave] for clave in ['ou', 'givenName', 'sn', 'title', 'mail', 'telephoneNumber', 'o', 'uid'] if clave in contenido }
                     usuarios.append(contenido_lite)
         else:
             usuarios = self.listar()
@@ -98,10 +98,10 @@ class Usuarios:
         try: 
             fichero = open(direccion)
         except IOError as e:
-            # Error de lectura, lo tomamos como que el fichero, por tanto el usuario, no existe 
+            # Error de lectura: El fichero, por tanto el usuario, no existe 
             pass
         else:
-            # Es posible abrir el archivo, el fichero, por tanto el usuario, no existe 
+            # Es posible abrir el archivo: El fichero, por tanto el usuario, existe 
             raise IOError
         
         # Realizamos la operación Creación de Usuario 
@@ -110,7 +110,7 @@ class Usuarios:
             dump(contenido, fichero)
         except Exception as e:
             # TODO: Estoy pensando que todo esto deberia ir a logging, en lugar de cualquier otra parte
-            raise Exception(contenido)
+            raise Exception(e)
         
         # Debería retornar, de hecho, la URL del nuevo objeto creado
         return "/usuarios/" + uid 
