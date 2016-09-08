@@ -16,6 +16,10 @@ def grupos_listado(peticion):
     contenido =  grupos.listar()[:150]
     return contenido
 
+@view_config(route_name='grupos_listado_options', renderer='json')
+def grupos_listado_options(peticion):
+    pass
+
 @view_config(route_name='grupos_detalle', renderer='json')
 def grupos_detalle (peticion):
 
@@ -24,7 +28,7 @@ def grupos_detalle (peticion):
         gidNumber = peticion.matchdict['grupo'] 
     except KeyError as e:
         log.error(e)
-        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPBadRequest()
     
     grupos = Grupos()
    
@@ -33,10 +37,10 @@ def grupos_detalle (peticion):
         contenido = grupos.detalle(gidNumber)
     except IOError as e:
         log.error(e)
-        return exception.HTTPNotFound(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPNotFound()
     except Exception as e:
         log.error(e)
-        return exception.HTTPInternalServerError(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPInternalServerError()
     
     return {'mensaje': contenido}
     

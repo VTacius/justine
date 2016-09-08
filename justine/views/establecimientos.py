@@ -7,9 +7,12 @@ from ..juliette.helpers import Establecimientos
 
 from cerberus import ValidationError
 
-
 import logging
 log = logging.getLogger('justine')
+
+@view_config(route_name='helpers_establecimientos_options', renderer='json')
+def establecimientos_listado_options(peticion):
+    pass
 
 @view_config(route_name='helpers_establecimientos', renderer='json')
 def establecimientos_listado(peticion):

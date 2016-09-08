@@ -22,15 +22,14 @@ def usuarios_listado(peticion):
 
     return contenido
 
-#@view_config(route_name='usuarios_detalle', renderer='json', permission='detallar')
-@view_config(route_name='usuarios_detalle', renderer='json')
+@view_config(route_name='usuarios_detalle', renderer='json', permission='detallar')
 def usuarios_detalle(peticion):
     
     # Validando datos recibidos
     try:
         uid = peticion.matchdict['usuario'] 
     except KeyError as e:
-        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPBadRequest()
     
     usuarios = Usuarios()
 
@@ -38,9 +37,9 @@ def usuarios_detalle(peticion):
     try:
         contenido = usuarios.detalle(uid)
     except IOError as e:
-        return exception.HTTPNotFound(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPNotFound()
     except Exception as e:
-        return exception.HTTPInternalServerError(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPInternalServerError()
 
     return {'mensaje': contenido}
 
@@ -79,13 +78,13 @@ def usuarios_creacion(peticion):
     try:
         contenido = v.validacion(peticion.json_body['corpus'])
     except TypeError as e:
-        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPBadRequest()
     except ValidationError as e:
-        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPBadRequest()
     except KeyError as e:
-        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPBadRequest()
     except ValueError as e:
-        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPBadRequest()
 
     usuarios = Usuarios()
     
@@ -94,13 +93,13 @@ def usuarios_creacion(peticion):
         mensaje = usuarios.creacion(contenido)
     except IOError as e:
         # Si el usuario existe, devolvemos un 409 Conflict
-        return exception.HTTPConflict(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPConflict()
     except Exception as e:
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
         log.error('No puedo ver el error')
         log.error(e.args)
-        return exception.HTTPInternalServerError(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPInternalServerError()
 
     # La siguiente parece ser LA FORMA de responder en este caso
     # Sin embargo, mi response en este caso esta vació cuando se llama con un Request creado vacío
@@ -116,8 +115,6 @@ def usuarios_creacion(peticion):
 @view_config(route_name='usuarios_creacion_options', renderer='json')
 def usuarios_creacion_options(peticion):
     respuesta = peticion.response
-    log.error('Cabeceras para respuesta en option')
-    log.error(respuesta.headerlist)
     return {'mensaje': 'nada'}
 
 @view_config(route_name='usuarios_actualizacion', renderer='json')
@@ -133,16 +130,16 @@ def usuarios_actualizacion(peticion):
             raise KeyError('Usuarios de contenido y petición no coinciden')
     except TypeError as e:
         log.error(e)
-        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPBadRequest()
     except ValidationError as e:
         log.error(e)
-        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPBadRequest()
     except KeyError as e:
         log.error(e)
-        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPBadRequest()
     except ValueError as e:
         log.error(e)
-        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPBadRequest()
 
     usuarios = Usuarios()
 
@@ -152,29 +149,27 @@ def usuarios_actualizacion(peticion):
     except KeyError as e:
         log.error(e)
         # Si contenido enviado no tiene los datos del original
-        return exception.HTTPBadRequest(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPBadRequest()
     except IOError as e:
         log.error(e)
         # Si el usuario no existe, devolvemos un 404 Not Found
-        return exception.HTTPNotFound(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPNotFound()
     except Exception as e:
         log.error(e)
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
-        return exception.HTTPInternalServerError(headers=(('Access-Control-Allow-Origin', '*'),))
+        return exception.HTTPInternalServerError()
         
     return {'mensaje': mensaje}
 
 @view_config(route_name='usuarios_actualizacion_options', renderer='json')
 def usuarios_actualizacion_options(peticion):
     respuesta = peticion.response
-    log.error('Cabeceras para respuesta en option')
     peticion.response.headerlist.extend(
         (
            ('Access-Control-Allow-Methods', 'PUT'), 
         )
     )
-    log.error(respuesta.headerlist)
     return {'mensaje': 'nada'}
 
 @view_config(route_name='usuarios_modificacion', renderer='json')
@@ -189,7 +184,7 @@ def usuarios_modificacion(peticion):
         if uid != contenido['uid']:
             raise KeyError('Usuarios de contenido y petición no coinciden')
     except ValidationError as e:
-        return exception.HTTPBadRequest(e.args)
+        return exception.HTTPBadRequest()
     except KeyError as e:
         return exception.HTTPBadRequest()
     except ValueError as e:
