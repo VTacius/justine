@@ -22,6 +22,10 @@ def usuarios_listado(peticion):
 
     return contenido
 
+@view_config(route_name='usuarios_listado_options', renderer='json')
+def usuarios_creacion_options(peticion):
+    pass
+
 @view_config(route_name='usuarios_detalle', renderer='json', permission='detallar')
 def usuarios_detalle(peticion):
     
@@ -111,11 +115,6 @@ def usuarios_creacion(peticion):
     )
 
     return {'mensaje': mensaje}
-
-@view_config(route_name='usuarios_creacion_options', renderer='json')
-def usuarios_creacion_options(peticion):
-    respuesta = peticion.response
-    return {'mensaje': 'nada'}
 
 @view_config(route_name='usuarios_actualizacion', renderer='json')
 def usuarios_actualizacion(peticion):

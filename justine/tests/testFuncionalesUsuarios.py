@@ -27,7 +27,7 @@ class Detalle(TestCase):
         self.testapp = TestApp(app)
 
         # TODO: Podrías hacer esto menos público
-        self.credenciales = {'username': 'vtacius', 'password': 'vtacius'}
+        self.credenciales = {'email': 'vtacius', 'password': 'vtacius'}
         
         # No pos, nos ahorramos dos líneas en cada método, pos
         auth = self.testapp.post_json('/auth/login', status=200, params=self.credenciales)
@@ -198,7 +198,7 @@ class Modificacion(TestCase):
     
     @classmethod
     def setUpClass(self):
-        self.uid = 'mrevelo'
+        self.uid = 'mrmarconi'
         self.datos = {'corpus': {'uid': self.uid, 'sn':'Mendoza', 'givenName': 'Ana', 'o': {'nombre': 'Secretaría de Estado SS Ministerio de Salud', 'id': 1038}}}
         
         from justine import main
@@ -210,7 +210,7 @@ class Modificacion(TestCase):
         self.testapp.post_json('/usuarios', status=201, params=self.datos)
 
         # TODO: Podrías hacer esto menos público
-        self.credenciales = {'username': 'vtacius', 'password': 'vtacius'}
+        self.credenciales = {'email': 'vtacius', 'password': 'vtacius'}
         
         # No pos, nos ahorramos dos líneas en cada método, pos
         auth = self.testapp.post_json('/auth/login', status=200, params=self.credenciales)

@@ -49,11 +49,14 @@ def main(global_config, **settings):
     config.add_route('grupos_listado', '/grupos', request_method='GET')
     config.add_route('grupos_listado_options', '/grupos', request_method='OPTIONS')
     config.add_route('grupos_detalle', '/grupos/{grupo}', request_method='GET')
+    # Rutas para objeto ''computadoras''
+    config.add_route('computadoras_listado', '/computadoras', request_method='GET')
+    config.add_route('computadoras_listado_options', '/computadoras', request_method='OPTIONS')
     # Rutas para objeto ''usuarios''
     config.add_route('usuarios_listado', '/usuarios', request_method='GET')
+    config.add_route('usuarios_listado_options', '/usuarios', request_method='OPTIONS')
     config.add_route('usuarios_detalle', '/usuarios/{usuario}', request_method='GET')
     config.add_route('usuarios_creacion', '/usuarios', request_method='POST')
-    config.add_route('usuarios_creacion_options', '/usuarios', request_method='OPTIONS')
     config.add_route('usuarios_borrado', '/usuarios/{usuario}', request_method='DELETE')
     config.add_route('usuarios_actualizacion', '/usuarios/{usuario}', request_method='PUT')
     config.add_route('usuarios_actualizacion_options', '/usuarios/{usuario}', request_method='OPTIONS')
