@@ -14,7 +14,9 @@ log = logging.getLogger('justine')
 @view_config(route_name='usuarios_listado', renderer='json', permission='listar')
 def usuarios_listado(peticion):
     filtros = peticion.GET.dict_of_lists()
-    usuarios = Usuarios()
+    rol = peticion.jwt_claims['rol']
+    username = peticion.authenticated_userid
+    usuarios = Usuarios.createAs(username, rol)
     if filtros:
         contenido = usuarios.busqueda(filtros) 
     else:
@@ -35,14 +37,16 @@ def usuarios_detalle(peticion):
     except KeyError as e:
         return exception.HTTPBadRequest()
     
-    usuarios = Usuarios()
-
     # Realizamos la operación Detalle de Usuarios mediante la librería
     try:
+        rol = peticion.jwt_claims['rol']
+        username = peticion.authenticated_userid
+        usuarios = Usuarios.createAs(username, rol)
         contenido = usuarios.detalle(uid)
     except IOError as e:
         return exception.HTTPNotFound()
     except Exception as e:
+        log.error(e)
         return exception.HTTPInternalServerError()
 
     return {'mensaje': contenido}
@@ -56,10 +60,11 @@ def usuarios_borrado(peticion):
     except KeyError as e:
         return exception.HTTPBadRequest()
      
-    usuarios = Usuarios()
-    
     # Realizamos la operacion Borrado de Usuarios mediante la librería
     try:
+        rol = peticion.jwt_claims['rol']
+        username = peticion.authenticated_userid
+        usuarios = Usuarios.createAs(username, rol)
         mensaje = usuarios.borrado(uid)
     except IOError as e:
         # Si el usuario no existe, devolvemos un 404 Not Found
@@ -90,19 +95,22 @@ def usuarios_creacion(peticion):
     except ValueError as e:
         return exception.HTTPBadRequest()
 
-    usuarios = Usuarios()
-    
     # Realizamos la operacion Creacion de Usuarios mediante la librería
     try:
+        rol = peticion.jwt_claims['rol']
+        username = peticion.authenticated_userid
+        usuarios = Usuarios.createAs(username, rol)
         mensaje = usuarios.creacion(contenido)
     except IOError as e:
         # Si el usuario existe, devolvemos un 409 Conflict
         return exception.HTTPConflict()
+    except KeyError as e:
+        # Ahora debería limitarse a que en jwt_claims no tenga 'rol'
+        return exception.HTTPForbidden('atributos rol o username')
     except Exception as e:
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
         log.error('No puedo ver el error')
-        log.error(e.args)
         return exception.HTTPInternalServerError()
 
     # La siguiente parece ser LA FORMA de responder en este caso
@@ -140,10 +148,11 @@ def usuarios_actualizacion(peticion):
         log.error(e)
         return exception.HTTPBadRequest()
 
-    usuarios = Usuarios()
-
     # Realizamos la operacion de Actualización de Usuarios mediante la librería
     try:
+        rol = peticion.jwt_claims['rol']
+        username = peticion.authenticated_userid
+        usuarios = Usuarios.createAs(username, rol)
         mensaje = usuarios.actualizacion(uid, contenido)
     except KeyError as e:
         log.error(e)
@@ -189,10 +198,11 @@ def usuarios_modificacion(peticion):
     except ValueError as e:
         return exception.HTTPBadRequest()
 
-    usuarios = Usuarios()
-
     # Realizamos la operación de Modificación de Usuarios mediante la librería    
     try:
+        rol = peticion.jwt_claims['rol']
+        username = peticion.authenticated_userid
+        usuarios = Usuarios.createAs(username, rol)
         mensaje = usuarios.modificacion(uid, contenido)
     except IOError as e:
         # Si el usuario no existe, devolvemos un 404 Not Found

@@ -12,10 +12,20 @@ class Listado(TestCase):
 
         app = main({})
         self.testapp = TestApp(app)
+        
+        # TODO: Podrías hacer esto menos público
+        self.credenciales = {'email': 'vtacius', 'password': 'vtacius'}
 
-    def test_usuarios_listado(self):
-        respuesta = self.testapp.get('/usuarios', status=200, xhr=True)
-        self.assertEqual(respuesta.json_body[0]['givenName'], "Baloncesto")
+        auth = self.testapp.post_json('/auth/login', status=200, params=self.credenciales)
+        self.token = {'WWW-Authorization': str(auth.json_body['token'])}
+
+    def test_usuarios_listado_unauth(self):
+        respuesta = self.testapp.get('/usuarios', status=403, xhr=True)
+        self.assertRegexpMatches(respuesta.body, 'Access was denied to this resource')
+
+    def test_usuarios_listado (self):
+        respuesta = self.testapp.get('/usuarios', status=200, xhr=True, headers=self.token)
+
 
 class Detalle(TestCase):
     def setUp(self):
@@ -71,13 +81,20 @@ class Creacion(TestCase):
         app = main({})
         self.testapp = TestApp(app)
     
+        # TODO: Podrías hacer esto menos público
+        self.credenciales = {'email': 'vtacius', 'password': 'vtacius'}
+        
+        # No pos, nos ahorramos dos líneas en cada método, pos
+        auth = self.testapp.post_json('/auth/login', status=200, params=self.credenciales)
+        self.token = {'www-authorization': str(auth.json_body['token'])}
+        
     @classmethod
     def tearDownClass(self):
-        self.testapp.delete('/usuarios/' + self.uid, status=200)
+        self.testapp.delete('/usuarios/' + self.uid, status=200, headers=self.token)
 
     def test_creacion_usuarios(self):
 
-        respuesta = self.testapp.post_json('/usuarios', status=201, params=self.datos)
+        respuesta = self.testapp.post_json('/usuarios', status=201, params=self.datos, headers=self.token)
        
         self.assertEqual(respuesta.status_int, 201)
     
@@ -85,14 +102,14 @@ class Creacion(TestCase):
         datos = self.datos
         datos['uid'] = 'alortiz'
 
-        respuesta = self.testapp.post_json('/usuarios', status=409, params=self.datos)
+        respuesta = self.testapp.post_json('/usuarios', status=409, params=self.datos, headers=self.token)
         
         self.assertEqual(respuesta.status_int, 409)
     
     def test_creacion_usuarios_peticion_malformada(self):
         datos = "Mínimo esfuerzo para máximo daño"
 
-        respuesta = self.testapp.post_json('/usuarios', status=400, params=datos)
+        respuesta = self.testapp.post_json('/usuarios', status=400, params=datos, headers=self.token)
 
         self.assertEqual(respuesta.status_int, 400)
 
@@ -113,19 +130,26 @@ class Borrado(TestCase):
         
         app = main({})
         self.testapp = TestApp(app)
+        
+        # TODO: Podrías hacer esto menos público
+        self.credenciales = {'email': 'vtacius', 'password': 'vtacius'}
+        
+        # No pos, nos ahorramos dos líneas en cada método, pos
+        auth = self.testapp.post_json('/auth/login', status=200, params=self.credenciales)
+        self.token = {'www-authorization': str(auth.json_body['token'])}
 
         # Creamos un usuarios que luego vamos a borrar, al menos un mi mente así funciona estas cosas
-        self.testapp.post_json('/usuarios', status=201, params=self.datos)
+        self.testapp.post_json('/usuarios', status=201, params=self.datos, headers=self.token)
     
     def test_borrado_usuarios(self):
-        respuesta = self.testapp.delete('/usuarios/' + self.uid, status=200)
+        respuesta = self.testapp.delete('/usuarios/' + self.uid, status=200, headers=self.token)
 
         self.assertEqual(respuesta.status_int, 200)
    
     def test_borrado_usuarios_inexistente(self):
         self.uid = "fitzcarraldo"
 
-        respuesta = self.testapp.delete('/usuarios/' + self.uid, status=404)
+        respuesta = self.testapp.delete('/usuarios/' + self.uid, status=404, headers=self.token)
 
         self.assertEqual(respuesta.status_int, 404)
 
@@ -147,19 +171,26 @@ class Actualizacion(TestCase):
         app = main({})
         self.testapp = TestApp(app)
         
+        # TODO: Podrías hacer esto menos público
+        self.credenciales = {'email': 'vtacius', 'password': 'vtacius'}
+        
+        # No pos, nos ahorramos dos líneas en cada método, pos
+        auth = self.testapp.post_json('/auth/login', status=200, params=self.credenciales)
+        self.token = {'www-authorization': str(auth.json_body['token'])}
+
         # Creamos un usuario totalmente diferente a todo lo creado, estoy casi seguro que esta parte si debe funcionar de esta forma
-        self.testapp.post_json('/usuarios', status=201, params=self.datos)
+        self.testapp.post_json('/usuarios', status=201, params=self.datos, headers=self.token)
     
     @classmethod
     def tearDownClass(self):
-        self.testapp.delete('/usuarios/' + self.uid, status=200)   
+        self.testapp.delete('/usuarios/' + self.uid, status=200, headers=self.token)   
      
     def test_actualizacion_usuarios(self):
         datos = self.datos
         datos['corpus']['givenName'] = 'Claudia Carolina'
         datos['corpus']['sn'] = 'Peña Nieto'
 
-        respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=200, params=datos)
+        respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=200, params=datos, headers=self.token)
 
         self.assertEqual(respuesta.status_int, 200)
 
@@ -167,7 +198,7 @@ class Actualizacion(TestCase):
         datos = self.datos
         uid = datos['corpus']['uid'] = 'fitzcarraldo'
 
-        respuesta = self.testapp.put_json('/usuarios/' + uid, status=404, params=datos)
+        respuesta = self.testapp.put_json('/usuarios/' + uid, status=404, params=datos, headers=self.token)
     
         self.assertEqual(respuesta.status_int, 404)
     
@@ -175,7 +206,7 @@ class Actualizacion(TestCase):
         datos = self.datos
         datos['corpus']['uid'] = 'fitzcarraldo' 
 
-        respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=400, params=datos)
+        respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=400, params=datos, headers=self.token)
         
         self.assertEqual(respuesta.status_int, 400)
     
@@ -184,7 +215,7 @@ class Actualizacion(TestCase):
         self.datos['corpus']['uid'] = 'cpena'
         self.uid = 'cpena'
 
-        respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=400, params=datos)
+        respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=400, params=datos, headers=self.token)
 
         self.assertEqual(respuesta.status_int, 400)
 
@@ -192,7 +223,7 @@ class Actualizacion(TestCase):
         sn = 'Castro Ortega'
         datos = {'corpus': {'uid': self.uid, 'sn': sn}}
 
-        self.testapp.put_json('/usuarios/' + self.uid, status=400, params=datos)
+        self.testapp.put_json('/usuarios/' + self.uid, status=400, params=datos, headers=self.token)
 
 class Modificacion(TestCase):
     
@@ -207,22 +238,23 @@ class Modificacion(TestCase):
         app = main({})
         self.testapp = TestApp(app)
         
-        self.testapp.post_json('/usuarios', status=201, params=self.datos)
-
         # TODO: Podrías hacer esto menos público
         self.credenciales = {'email': 'vtacius', 'password': 'vtacius'}
         
         # No pos, nos ahorramos dos líneas en cada método, pos
         auth = self.testapp.post_json('/auth/login', status=200, params=self.credenciales)
         self.token = {'www-authorization': str(auth.json_body['token'])}
+        
+        # Creamos un usuario sobre el cual trabajar
+        self.testapp.post_json('/usuarios', status=201, params=self.datos, headers=self.token)
 
     @classmethod
     def tearDownClass(self):
-        self.testapp.delete('/usuarios/' + self.uid, status=200) 
+        self.testapp.delete('/usuarios/' + self.uid, status=200, headers=self.token) 
 
     def test_modificacion_usuarios(self):
         datos = {'corpus': {'uid': self.uid, 'sn': 'Mendoza Castro', 'givenName': 'Anita'}}
-        respuesta = self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos)
+        respuesta = self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos, headers=self.token)
 
         self.assertEqual(respuesta.status_int, 200) 
 
@@ -230,13 +262,13 @@ class Modificacion(TestCase):
         uid = 'fitzcarraldo'
         datos = {'corpus': {'uid': uid, 'sn': 'Mendoza Castro', 'givenName': 'Anita'}}
         
-        respuesta = self.testapp.patch_json('/usuarios/' + uid, status=404, params=datos)
+        respuesta = self.testapp.patch_json('/usuarios/' + uid, status=404, params=datos, headers=self.token)
         
         self.assertEqual(respuesta.status_int, 404)
 
     def test_modificacion_usuarios_verificacion(self):
         datos = {'corpus': {'uid': self.uid, 'sn': 'Mendoza Castro', 'givenName': 'Anita'}}
-        self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos)
+        self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos, headers=self.token)
 
         respuesta = self.testapp.get('/usuarios/' + self.uid, status=200, headers=self.token)
 
@@ -245,7 +277,7 @@ class Modificacion(TestCase):
     def test_modificacion_usuarios_nopermitido_clave(self):
         clave_falsa = 'espejismo'
         datos = {'corpus': {'uid': self.uid, clave_falsa: 'Clave fantasmal'}}
-        self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos)
+        self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos, headers=self.token)
        
         respuesta = self.testapp.get('/usuarios/' + self.uid, status=200, headers=self.token)
 
@@ -254,7 +286,7 @@ class Modificacion(TestCase):
 
     def test_modificacion_usuarios_agregando_clave(self):
         datos = {'corpus': {'uid': self.uid, 'title': 'sobrerero'}}
-        self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos)
+        self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos, headers=self.token)
         
         respuesta = self.testapp.get('/usuarios/' + self.uid, status=200, headers=self.token)
         

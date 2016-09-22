@@ -3,7 +3,7 @@ from pyramid.security import Allow, Everyone, Authenticated
 class Root(object):
 
     __acl__ = [
-        (Allow, Everyone, 'listar'),
+        (Allow, Authenticated, 'listar'),
         (Allow, Authenticated, 'detallar'),
         (Allow, 'administrador', 'creacion'),
         (Allow, 'administrador', 'actualizacion'),

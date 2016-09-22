@@ -26,6 +26,9 @@ class Listado(TestCase):
         register = Registry('testing')
         peticion.register = register
 
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
         respuesta = usuarios_listado(peticion)
         
         self.assertEqual(respuesta[0]['givenName'], "Baloncesto")
@@ -39,6 +42,9 @@ class Listado(TestCase):
         register = Registry('testing')
         peticion.register = register
         
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
         respuesta = usuarios_listado(peticion)
         self.assertTrue(len(respuesta) <= 250)
 
@@ -59,12 +65,19 @@ class Detalle(TestCase):
         register = Registry('testing')
         peticion.registry = register
         
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
         respuesta = usuarios_detalle(peticion)
         self.assertEqual(respuesta['mensaje']['givenName'], 'Alexander')
 
     def test_usuarios_detalle_contador(self):
         from ..views.usuarios import usuarios_detalle
         peticion = testing.DummyRequest
+        
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+        
         peticion.matchdict = {'usuario': 'alortiz'}
         respuesta = usuarios_detalle(peticion)
         self.assertTrue('mensaje' in respuesta)
@@ -83,8 +96,13 @@ class Creacion(TestCase):
     def tearDown(self):
         from ..views.usuarios import usuarios_borrado
         self.config = testing.tearDown()
+        
         peticion = testing.DummyRequest()
         peticion.matchdict = {'usuario': self.uid}
+        
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
 
         usuarios_borrado(peticion)
     
@@ -97,6 +115,9 @@ class Creacion(TestCase):
 
         register = Registry('testing')
         peticion.registry = register
+
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
 
         respuesta = usuarios_creacion(peticion)
  
@@ -116,6 +137,9 @@ class Creacion(TestCase):
         register = Registry('testing')
         peticion.registry = register
 
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
         respuesta = usuarios_creacion(peticion)
  
         self.assertEqual(type(respuesta), HTTPConflict)
@@ -132,6 +156,9 @@ class Creacion(TestCase):
         register = Registry('testing')
         peticion.registry = register
         
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
         respuesta = usuarios_creacion(peticion)
         
         self.assertTrue(isinstance(respuesta, HTTPBadRequest))
@@ -148,16 +175,19 @@ class Borrado(TestCase):
             "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}, "jvs": {"estado": False, "valor": None}, 
             "sn": "Mulato", "ou": "Unidad Financiera Institucional", "givenName": "Lorena", "userPassword": "Abc_9999"}}
         
-        # Creo que esto es de lo peor que puedo hacer: Usar métodos más funcionales que unitarios
-        # en un test unitario, sin embargo es la única forma de sobrepasar el problema
+        from ..views.usuarios import usuarios_creacion
+        from pyramid.request import Request
+ 
+        datos = dumps(self.datos)
+        peticion = Request.blank('', {}, body=datos)
 
-        from justine import main        
-        from webtest import TestApp
+        register = Registry('testing')
+        peticion.registry = register
 
-        app = main({})
-        testapp = TestApp(app)
-        
-        testapp.post_json('/usuarios', status=201, params=self.datos)  
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
+        respuesta = usuarios_creacion(peticion)
 
     @classmethod
     def tearDownClass(self):
@@ -169,6 +199,9 @@ class Borrado(TestCase):
         peticion = testing.DummyRequest()
         peticion.matchdict = {'usuario': self.uid}
         
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
         respuesta = usuarios_borrado(peticion)
         
         self.assertEqual(respuesta['mensaje'], self.uid + " Borrado")
@@ -182,6 +215,9 @@ class Borrado(TestCase):
             
         peticion = testing.DummyRequest()
         peticion. matchdict = {'usuario': uid}
+
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
 
         respuesta = usuarios_borrado(peticion)
 
@@ -200,16 +236,19 @@ class Actualizacion(TestCase):
             "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}, "jvs": {"estado": False, "valor": None}, 
             "sn": "Mulato", "ou": "Unidad Financiera Institucional", "givenName": "Lorena", "userPassword": "Abc_9999"}}
         
-        # Creo que esto es de lo peor que puedo hacer: Usar métodos más funcionales que unitarios
-        # en un test unitario, sin embargo es la única forma de sobrepasar el problema
+        from ..views.usuarios import usuarios_creacion
+        from pyramid.request import Request
+ 
+        datos = dumps(self.datos)
+        peticion = Request.blank('', {}, body=datos)
 
-        from justine import main        
-        from webtest import TestApp
+        register = Registry('testing')
+        peticion.registry = register
 
-        app = main({})
-        testapp = TestApp(app)
-        
-        testapp.post_json('/usuarios', status=201, params=self.datos)  
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
+        respuesta = usuarios_creacion(peticion)
 
     @classmethod
     def tearDownClass(self):
@@ -232,6 +271,9 @@ class Actualizacion(TestCase):
         peticion = Request.blank('', {}, body = datos)
         peticion.matchdict = {'usuario': self.uid}
         
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
         respuesta = usuarios_actualizacion(peticion)
         
         self.assertEqual(respuesta['mensaje'], self.uid + ' Actualizado')
@@ -256,9 +298,13 @@ class Actualizacion(TestCase):
         
         uid = 'fitzcarraldo'
         datos = dumps({'corpus': {'uid': uid, 'sn':'Mendoza', 'givenName': 'Ana'}})
+        
         peticion = Request.blank('', {}, body=datos)
         peticion.matchdict = {'usuario': uid}
         
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
         respuesta = usuarios_actualizacion(peticion)
         
         self.assertEqual(type(respuesta), HTTPNotFound)
@@ -271,6 +317,7 @@ class Actualizacion(TestCase):
         uid_principal = 'alortiz'
         uid_alterno = 'fitzcarraldo'
         datos = dumps({'corpus': {'uid': uid_principal, 'sn':'Mendoza', 'givenName': 'Ana'}})
+        
         peticion = Request.blank('', {}, body=datos)
         peticion.matchdict = {'usuario': uid_alterno}
 
@@ -294,6 +341,9 @@ class Actualizacion(TestCase):
         peticion = testing.DummyRequest()
         peticion.matchdict = {'usuario': uid}
 
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
         respuesta = usuarios_detalle(peticion)
 
         self.assertEqual(respuesta['mensaje']['sn'], sn)
@@ -305,16 +355,19 @@ class Modificacion(TestCase):
         self.uid = 'jabdalah'
         self.datos = {'corpus': {'uid': self.uid, 'sn':'Mendoza', 'givenName': 'Ana', "o": {"nombre": "Secretaría de Estado SS Ministerio de Salud", "id": 1038}}}
       
-        # Creo que esto es de lo peor que puedo hacer: Usar métodos más funcionales que unitarios
-        # en un test unitario, sin embargo es la única forma de sobrepasar el problema
-         
-        from justine import main
-        from webtest import TestApp
+        from ..views.usuarios import usuarios_creacion
+        from pyramid.request import Request
+ 
+        datos = dumps(self.datos)
+        peticion = Request.blank('', {}, body=datos)
 
-        app = main({})
-        testapp = TestApp(app)
-        
-        testapp.post_json('/usuarios', status=201, params=self.datos)
+        register = Registry('testing')
+        peticion.registry = register
+
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
+
+        respuesta = usuarios_creacion(peticion)
 
     @classmethod
     def tearDownClass(self):
@@ -322,6 +375,9 @@ class Modificacion(TestCase):
         
         peticion = testing.DummyRequest()
         peticion.matchdict = {'usuario': self.uid}
+
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
 
         usuarios_borrado(peticion)
 
@@ -331,8 +387,12 @@ class Modificacion(TestCase):
 
         datos = {'corpus': {'uid': self.uid, 'sn': 'Mendoza Castro', 'givenName': 'Anita'}}
         datos_json = dumps(datos)
+        
         peticion = Request.blank('', {}, body=datos_json)
         peticion.matchdict = {'usuario': self.uid}
+
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
 
         respuesta = usuarios_modificacion(peticion)
         self.assertEqual(respuesta['mensaje'], self.uid + " Parchado")
@@ -352,6 +412,9 @@ class Modificacion(TestCase):
         
         peticion =  Request.blank('', {}, body = datos)
         peticion.matchdict = {'usuario': uid}
+
+        jwt_claims = {'rol': 'administrador'}
+        peticion.jwt_claims = jwt_claims 
 
         respuesta = usuarios_modificacion(peticion)
         

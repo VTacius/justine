@@ -14,7 +14,12 @@ def login_option(peticion):
 
 @view_config(route_name='logueo', renderer='json')
 def login(peticion):
-    datos = peticion.json_body
+   
+    try:
+        datos = peticion.json_body
+    except ValueError as e:
+        return exceptions.HTTPBadRequest()
+
     try:
         usuario = datos['email']
         password = datos['password']
