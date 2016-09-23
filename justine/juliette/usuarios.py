@@ -1,5 +1,8 @@
 # coding: utf-8
 
+# Excepciones con nombres llamativos ayudarán a la legibilidad del código
+from ..juliette.Exceptions import RolInvalido, PermisosInsuficientes
+
 import datetime
 # Las siguientes librerías son parte del core actual, podrían volverse innecesarias cuando use la
 # API de Samba4
@@ -23,7 +26,7 @@ class Usuarios:
             claves_detalle = ['givenName', 'grupo', 'grupos', 'mail', 'o', 'ou', 'sn', 'telephoneNumber', 'title', 'uid']
             claves_modificacion = ['sn', 'givenName', 'o', 'ou', 'dui', 'nit', 'fecha', 'title', 'pregunta', 'respuesta']
             return Usuario(username, claves, claves_ligeras, claves_detalle, claves_modificacion)
-        elif rol == 'tecnico':
+        elif rol == 'tecnicosuperior':
             claves_detalle = ['buzonStatus', 'cuentaStatus', 'givenName', 'grupo', 'grupos', 'loginShell', 'mail', 'o', 
                 'ou', 'sambaAcctFlags', 'sn', 'telephoneNumber', 'title', 'uid', 'userPassword', 'usoBuzon', 'volumenBuzon']
             claves_modificacion = ['sn', 'givenName', 'o', 'ou', 'dui', 'nit', 'fecha', 'title', 'pregunta', 'respuesta']
@@ -33,7 +36,10 @@ class Usuarios:
                 'ou','pregunta', 'respuesta', 'sambaAcctFlags', 'sn', 'telephoneNumber', 'title', 'uid', 'userPassword', 
                 'usoBuzon', 'volumenBuzon']
             claves_modificacion = ['sn', 'givenName', 'o', 'ou', 'dui', 'nit', 'fecha', 'title', 'pregunta', 'respuesta']
-            return UsuarioAdministador(username, claves, claves_ligeras, claves_detalle, claves_modificacion)
+            return UsuarioAdministrador(username, claves, claves_ligeras, claves_detalle, claves_modificacion)
+        else:
+            # No tenemos un rol válido, lanzamos un error personalizado RolInvalido
+            raise RolInvalido(username + ' con ' + rol) 
 
 class Usuario:
    
@@ -87,23 +93,30 @@ class Usuario:
         return usuarios
  
     def detalle(self, uid):
-         """
-         Acá obtenemos más detalles del usuario en base al rol del cliente
-         TODO: Verificar rol del usuario
-         """
-         direccion = self.direccion + '/datos.d/usuarios_detalle_' + uid + '.json'
+        """
+        Acá obtenemos más detalles del usuario en base al rol del cliente
+        """
+        direccion = self.direccion + '/datos.d/usuarios_detalle_' + uid + '.json'
+        # El rol determina con claves_detalle los atributos que puede obtener de cada usuario
+        # Excepto si intenta obtener sus propios datos 
+        claves = self.claves if self.username == uid else self.claves_detalle
+            
+        try:
+            contenido = self.__obtener_contenido(direccion, claves)
+        except IOError as e:
+            # Verifica que el usuario existe
+            raise IOError
+        except Exception as e:
+            # Cualquier otro error arroja un genérico 500 en la vista    
+            raise Exception(e.args)
  
-         # Verifica que el usuario existe
-         try:
-             contenido = self.__obtener_contenido(direccion, self.claves_detalle)
-         except IOError as e:
-             raise IOError
-         except Exception as e:
-             raise Exception(e.args)
+        return contenido
  
-         return contenido
- 
-    def modificacion(self, uid, contenido):
+    def _modificacion(self, uid, contenido):
+        """
+        La idea es modificar una lista arbritraria de atributos 
+        siempre que tenga permiso de hacerlo 
+        """
         direccion = self.direccion + '/datos.d/usuarios_detalle_' + uid + '.json'
 
         # Verifica que el usuario existe
@@ -126,17 +139,36 @@ class Usuario:
             raise Exception(e.args)
 
         return uid + " Parchado"
+    
+    def modificacion(self, uid, contenido):
+        """
+        Esta clase se limita a modificar un objeto con self.__modificacion
+        si es que el usuario tiene permiso específico sobre dicho objeto, 
+        en este caso, es el mismo objeto que representa al usuario
+        """
+        if uid == self.username:
+            return self._modificacion(uid, contenido)
+        else:
+            raise PermisosInsuficientes(self.username + ' modificando a ' + uid) 
 
 class UsuarioTecnico(Usuario):
    
     def __init__(self, username, claves, claves_ligeras, claves_detalle, claves_modificacion):
         Usuario.__init__(self, username, claves, claves_ligeras, claves_detalle, claves_modificacion)
+    
+    def modificacion(self, uid, contenido):
+        # TODO: Existe un rol en el que esta modificación ocurre sólo con unos cuantos usuarios
+        return Usuario._modificacion(uid, contenido)
 
-class UsuarioAdministador(Usuario):
+class UsuarioAdministrador(Usuario):
    
     def __init__(self, username, claves, claves_ligeras, claves_detalle, claves_modificacion):
         Usuario.__init__(self, username, claves, claves_ligeras, claves_detalle, claves_modificacion)
         
+    def modificacion(self, uid, contenido):
+        # Podemos modificar cuantos usuarios querramos mediante self.__modificacion 
+        return Usuario._modificacion(self, uid, contenido)
+    
     def borrado(self, uid):
        
         direccion = self.direccion + '/datos.d/usuarios_detalle_' + uid + '.json'

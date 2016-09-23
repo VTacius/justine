@@ -4,6 +4,8 @@ from pyramid.view import view_config
 from pyramid import httpexceptions as exception
 
 from ..juliette.usuarios import Usuarios
+# Excepciones con nombres llamativos ayudarán a la legibilidad del código
+from ..juliette.Exceptions import RolInvalido, PermisosInsuficientes
 
 from cerberus import ValidationError
 from ..schemas.usuarios import EsquemaUsuario
@@ -43,6 +45,8 @@ def usuarios_detalle(peticion):
         username = peticion.authenticated_userid
         usuarios = Usuarios.createAs(username, rol)
         contenido = usuarios.detalle(uid)
+    except RolInvalido as e:
+        return exception.HTTPForbidden(e.args)
     except IOError as e:
         return exception.HTTPNotFound()
     except Exception as e:
@@ -207,9 +211,12 @@ def usuarios_modificacion(peticion):
     except IOError as e:
         # Si el usuario no existe, devolvemos un 404 Not Found
         return exception.HTTPNotFound()
+    except PermisosInsuficientes as e:
+        return exception.HTTPForbidden(e.args)
     except Exception as e:
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
+        log.error(e)
         return exception.HTTPInternalServerError()
 
     return {'mensaje': mensaje} 
