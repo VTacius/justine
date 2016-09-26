@@ -13,6 +13,8 @@ from ..schemas.usuarios import EsquemaUsuario
 import logging
 log = logging.getLogger('justine')
 
+from pyramid.renderers import JSON
+
 @view_config(route_name='usuarios_listado', renderer='json', permission='listar')
 def usuarios_listado(peticion):
     filtros = peticion.GET.dict_of_lists()
@@ -48,7 +50,7 @@ def usuarios_detalle(peticion):
     except RolInvalido as e:
         return exception.HTTPForbidden(e.args)
     except IOError as e:
-        return exception.HTTPNotFound()
+        return exception.HTTPNotFound(json_formatter=JSON)
     except Exception as e:
         log.error(e)
         return exception.HTTPInternalServerError()

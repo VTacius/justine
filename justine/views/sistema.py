@@ -38,7 +38,6 @@ def login(peticion):
         'cpena': ['Estereotipo Secular', 'tecnicoatencion']
     }
 
-    
     # Acá empieza la operación que permite autenticar a los usuarios
     try:
         # Acá va una función que hace magia, pero después, por favor
