@@ -1,5 +1,7 @@
 # coding: utf-8
 
+from modulosFuncionales import credenciales
+
 import logging
 log = logging.getLogger('justine')
 
@@ -18,12 +20,7 @@ class Modificacion(TestCase):
         app = main({})
         self.testapp = TestApp(app)
         
-        # TODO: Podrías hacer esto menos público
-        self.credenciales = {'email': 'vtacius', 'password': 'vtacius'}
-        
-        # No pos, nos ahorramos dos líneas en cada método, pos
-        auth = self.testapp.post_json('/auth/login', status=200, params=self.credenciales)
-        self.token = {'www-authorization': str(auth.json_body['token'])}
+        self.token = credenciales('administrador')
         
         # Creamos un usuario sobre el cual trabajar
         self.testapp.post_json('/usuarios', status=201, params=self.datos, headers=self.token)
@@ -56,18 +53,40 @@ class Modificacion(TestCase):
 
     def test_modificacion_usuarios_nopermitido_clave(self):
         clave_falsa = 'espejismo'
-        datos = {'corpus': {'uid': self.uid, clave_falsa: 'Clave fantasmal'}}
-        self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos, headers=self.token)
+        contenido_falso = 'Contenido falso'
+        datos = {'corpus': {'uid': self.uid, clave_falsa: contenido_falso}}
+        respuesta = self.testapp.patch_json('/usuarios/' + self.uid, status=400, params=datos, headers=self.token)
        
-        respuesta = self.testapp.get('/usuarios/' + self.uid, status=200, headers=self.token)
-
-        self.assertFalse(clave_falsa in respuesta.json_body['mensaje']) 
+        self.assertRegexpMatches(str(respuesta.json_body), "{}\'\: \'unknown field".format(clave_falsa))
 
     def test_modificacion_usuarios_agregando_clave(self):
-        datos = {'corpus': {'uid': self.uid, 'title': 'sobrerero'}}
+        datos = {'corpus': {'uid': self.uid, 'title': 'Sombrerero'}}
         self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos, headers=self.token)
         
         respuesta = self.testapp.get('/usuarios/' + self.uid, status=200, headers=self.token)
         
         self.assertEqual(respuesta.json_body['mensaje']['title'], datos['corpus']['title'])
+    
+    def test_modificacion_usuarios_rol_usuario_otro_usuario(self):
+        token = credenciales('usuario')
+        datos = {'corpus': {'uid': self.uid, 'title': 'Sombrerero'}}
         
+        respuesta = self.testapp.patch_json('/usuarios/' + self.uid, status=403, params=datos, headers=token)
+        
+        self.assertRegexpMatches(str(respuesta.json_body), "no puede modificar a {}".format(self.uid))
+
+    def test_modificacion_usuarios_rol_tecnico_otro_usuario(self):
+        token = credenciales('tecnicosuperior')
+        datos = {'corpus': {'uid': self.uid, 'title': 'Sombrerero'}}
+
+        respuesta = self.testapp.patch_json('/usuarios/' + self.uid, status=403, params=datos, headers=token)
+
+        self.assertRegexpMatches(str(respuesta.json_body), "no puede modificar a {}".format(self.uid))
+    
+    def test_modificacion_usuarios_modificacion_usuario_mismatch(self):
+        usuario = 'fitzcarraldo'
+        datos = {'corpus': {'uid': self.uid, 'title': 'Sombrerero'}}
+        
+        respuesta = self.testapp.patch_json('/usuarios/' + usuario, status=400, params=datos, headers=self.token)
+        
+        self.assertRegexpMatches(str(respuesta.json_body), 'Usuarios de contenido y .+ no coinciden')

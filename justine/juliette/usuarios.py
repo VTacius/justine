@@ -149,7 +149,7 @@ class Usuario:
         if uid == self.username:
             return self._modificacion(uid, contenido)
         else:
-            raise PermisosInsuficientes(self.username + ' modificando a ' + uid) 
+            raise PermisosInsuficientes("{} no puede modificar a {}".format(self.username, uid) )
 
 class UsuarioTecnico(Usuario):
    
@@ -158,7 +158,10 @@ class UsuarioTecnico(Usuario):
     
     def modificacion(self, uid, contenido):
         # TODO: Existe un rol en el que esta modificación ocurre sólo con unos cuantos usuarios
-        return Usuario._modificacion(uid, contenido)
+        if uid == self.username:
+            return Usuario._modificacion(uid, contenido)
+        else:
+            raise PermisosInsuficientes("{} no puede modificar a {}".format(self.username, uid) )
 
 class UsuarioAdministrador(Usuario):
    

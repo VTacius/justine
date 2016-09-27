@@ -194,14 +194,14 @@ def usuarios_modificacion(peticion):
     v = EsquemaUsuario.obtener('modificacion', 'uid')
     try:
         uid = peticion.matchdict['usuario']
-        contenido = peticion.json_body['corpus']
+        contenido = v.validacion(peticion.json_body['corpus'])
         # El corpus debe estar completo, y coincidir con el {usuario} que se peticiona a PUT
         if uid != contenido['uid']:
             raise KeyError('Usuarios de contenido y petición no coinciden')
     except ValidationError as e:
-        return exception.HTTPBadRequest()
+        return exception.HTTPBadRequest(e.args)
     except KeyError as e:
-        return exception.HTTPBadRequest()
+        return exception.HTTPBadRequest(e.args)
     except ValueError as e:
         return exception.HTTPBadRequest()
 

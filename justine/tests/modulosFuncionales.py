@@ -5,7 +5,8 @@ def credenciales(rol):
     fixtures = {'credenciales': 
         {
             'administrador': {'email': 'vtacius', 'password': 'vtacius'},
-            'tecnicosuperior': {'email': 'alortiz', 'password': 'alortiz'}
+            'tecnicosuperior': {'email': 'alortiz', 'password': 'alortiz'},
+            'usuario': {'email': 'usuario', 'password': 'usuario'}
         }
     }
 

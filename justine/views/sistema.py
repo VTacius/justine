@@ -35,7 +35,8 @@ def login(peticion):
         'vtacius': ['Alexander Ortíz', 'administrador'],
         'alortiz': ['Alexander Ortega', 'tecnicosuperior'],
         'figaro': ['Estereotipo Estándar', 'tecnicoatencion'],
-        'cpena': ['Estereotipo Secular', 'tecnicoatencion']
+        'cpena': ['Estereotipo Secular', 'tecnicoatencion'],
+        'usuario': ['Usuarios súper estándar', 'usuario']
     }
 
     # Acá empieza la operación que permite autenticar a los usuarios

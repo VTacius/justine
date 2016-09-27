@@ -9,6 +9,7 @@ import logging
 log = logging.getLogger('justine')
 
 class Modificacion(TestCase):
+
     @classmethod
     def setUpClass(self):
         self.config = testing.setUp()

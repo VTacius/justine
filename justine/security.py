@@ -10,6 +10,7 @@ USERS = ['vtacius', 'alortiz', 'cpena', 'figaro']
 ROLES = {
             'vtacius': ['administrador', 'tecnicosuperior', 'tecnicoatencion'], 
             'alortiz': ['tecnicosuperior', 'tecnicoatencion'],
+            'usuario': ['usuario'],
             'figaro': ['tecnicoatencion'],
             'cpena': ['tecnicoatencion']
         }

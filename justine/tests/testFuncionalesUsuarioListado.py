@@ -8,6 +8,7 @@ log = logging.getLogger('justine')
 from unittest import TestCase
 
 class Listado(TestCase):
+
     def setUp(self):
         from justine import main
         from webtest import TestApp
