@@ -39,7 +39,7 @@ class Usuarios:
             return UsuarioAdministrador(username, claves, claves_ligeras, claves_detalle, claves_modificacion)
         else:
             # No tenemos un rol válido, lanzamos un error personalizado RolInvalido
-            raise RolInvalido(username + ' con ' + rol) 
+            raise RolInvalido("{} con {}".format(username, rol)) 
 
 class Usuario:
    
@@ -87,7 +87,7 @@ class Usuario:
             for fichero in ficheros:
                 if fichero.find(termino) == 0:
                     ruta = direccion + '/' + fichero
-                    usuarios.append(self.__obtener_contenido(ruta, claves_ligeras))
+                    usuarios.append(self.__obtener_contenido(ruta, self.claves_ligeras))
         else:
             usuarios = self.listar()
         return usuarios

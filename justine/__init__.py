@@ -12,6 +12,7 @@ import logging
 log = logging.getLogger('justine')
 
 def request_factory(environ):
+    environ['HTTP_ACCEPT'] = 'application/json' 
     request = Request(environ)
     request.response = Response()
     request.add_response_callback(finish_callback)

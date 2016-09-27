@@ -3,7 +3,7 @@
 from unittest import TestCase
 from pyramid import testing
 from pyramid.registry import Registry
-from json import dumps
+from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest
 
 import logging
 log = logging.getLogger('justine')
@@ -17,13 +17,9 @@ class Detalle(TestCase):
 
     def test_usuarios_detalle(self):
         from ..views.usuarios import usuarios_detalle
-        from pyramid.request import Request
         
-        peticion = Request.blank('', {})
+        peticion = testing.DummyRequest()
         peticion.matchdict = {'usuario': 'alortiz'}
-        
-        register = Registry('testing')
-        peticion.registry = register
         
         jwt_claims = {'rol': 'administrador'}
         peticion.jwt_claims = jwt_claims 
@@ -33,12 +29,33 @@ class Detalle(TestCase):
 
     def test_usuarios_detalle_contador(self):
         from ..views.usuarios import usuarios_detalle
-        peticion = testing.DummyRequest
+
+        peticion = testing.DummyRequest()
+        peticion.matchdict = {'usuario': 'alortiz'}
         
         jwt_claims = {'rol': 'administrador'}
         peticion.jwt_claims = jwt_claims 
         
-        peticion.matchdict = {'usuario': 'alortiz'}
         respuesta = usuarios_detalle(peticion)
         self.assertTrue('mensaje' in respuesta)
 
+    def test_usuarios_detalle_wrong_rol(self):
+        from ..views.usuarios import usuarios_detalle
+
+        peticion = testing.DummyRequest()
+        peticion.matchdict = {'usuario': 'alortiz'}
+        
+        jwt_claims = {'rol': 'guerrillero'}
+        peticion.jwt_claims = jwt_claims
+
+        respuesta = usuarios_detalle(peticion)
+        self.assertIsInstance(respuesta, HTTPForbidden)
+
+    def test_usuarios_detalle_wrong_matchdict(self):
+        from ..views.usuarios import usuarios_detalle
+
+        peticion = testing.DummyRequest()
+        peticion.matchdict = {'usuariaraje': 'alortiz'}
+
+        respuesta = usuarios_detalle(peticion)
+        self.assertIsInstance(respuesta, HTTPBadRequest)

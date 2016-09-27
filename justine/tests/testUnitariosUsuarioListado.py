@@ -22,9 +22,6 @@ class Listado(TestCase):
 
         peticion = Request.blank('', {})
         
-        register = Registry('testing')
-        peticion.register = register
-
         jwt_claims = {'rol': 'administrador'}
         peticion.jwt_claims = jwt_claims 
 
@@ -38,9 +35,6 @@ class Listado(TestCase):
 
         peticion = Request.blank('', {})
 
-        register = Registry('testing')
-        peticion.register = register
-        
         jwt_claims = {'rol': 'administrador'}
         peticion.jwt_claims = jwt_claims 
 

@@ -4,7 +4,6 @@ from pyramid.view import view_config
 from pyramid import httpexceptions as exception
 
 from ..juliette.usuarios import Usuarios
-# Excepciones con nombres llamativos ayudarán a la legibilidad del código
 from ..juliette.Exceptions import RolInvalido, PermisosInsuficientes
 
 from cerberus import ValidationError
@@ -13,23 +12,25 @@ from ..schemas.usuarios import EsquemaUsuario
 import logging
 log = logging.getLogger('justine')
 
-from pyramid.renderers import JSON
-
 @view_config(route_name='usuarios_listado', renderer='json', permission='listar')
 def usuarios_listado(peticion):
-    filtros = peticion.GET.dict_of_lists()
-    rol = peticion.jwt_claims['rol']
-    username = peticion.authenticated_userid
-    usuarios = Usuarios.createAs(username, rol)
-    if filtros:
-        contenido = usuarios.busqueda(filtros) 
-    else:
-        contenido = usuarios.listar()[:150]
+    try:
+        filtros = peticion.GET.dict_of_lists()
+        rol = peticion.jwt_claims['rol']
+        username = peticion.authenticated_userid
+        usuarios = Usuarios.createAs(username, rol)
+        if filtros:
+            contenido = usuarios.busqueda(filtros) 
+        else:
+            contenido = usuarios.listar()[:250]
+    except Exception as e:
+        log.error(e)
+        return exception.HTTPInternalServerError()
 
     return contenido
 
 @view_config(route_name='usuarios_listado_options', renderer='json')
-def usuarios_creacion_options(peticion):
+def usuarios_listado_options(peticion):
     pass
 
 @view_config(route_name='usuarios_detalle', renderer='json', permission='detallar')
@@ -50,7 +51,7 @@ def usuarios_detalle(peticion):
     except RolInvalido as e:
         return exception.HTTPForbidden(e.args)
     except IOError as e:
-        return exception.HTTPNotFound(json_formatter=JSON)
+        return exception.HTTPNotFound()
     except Exception as e:
         log.error(e)
         return exception.HTTPInternalServerError()
