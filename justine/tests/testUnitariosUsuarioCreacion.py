@@ -29,7 +29,6 @@ class Creacion(TestCase):
         jwt_claims = {'rol': 'administrador'}
         peticion.jwt_claims = jwt_claims 
 
-
         usuarios_borrado(peticion)
     
     def test_usuarios_creacion(self):
@@ -68,7 +67,7 @@ class Creacion(TestCase):
 
         respuesta = usuarios_creacion(peticion)
  
-        self.assertEqual(type(respuesta), HTTPConflict)
+        self.assertIsInstance(respuesta, HTTPConflict)
 
     def test_usuarios_creacion_peticion_malformada(self):
         from ..views.usuarios import usuarios_creacion
@@ -87,4 +86,42 @@ class Creacion(TestCase):
 
         respuesta = usuarios_creacion(peticion)
         
-        self.assertTrue(isinstance(respuesta, HTTPBadRequest))
+        self.assertIsInstance(respuesta, HTTPBadRequest)
+
+    def test_usuarios_creacion_rol_usuario(self):
+        from ..views.usuarios import usuarios_creacion
+        from pyramid.request import Request
+        from pyramid.httpexceptions import HTTPForbidden
+
+        datos_json = dumps(self.datos)
+        
+        peticion = Request.blank('', {}, body=datos_json)
+
+        register = Registry('testing')
+        peticion.registry = register
+        
+        jwt_claims = {'rol': 'usuario'}
+        peticion.jwt_claims = jwt_claims 
+        
+        respuesta = usuarios_creacion(peticion)
+
+        self.assertIsInstance(respuesta, HTTPForbidden)  
+    
+    def test_usuarios_creacion_rol_tecnico(self):
+        from ..views.usuarios import usuarios_creacion
+        from pyramid.request import Request
+        from pyramid.httpexceptions import HTTPForbidden
+
+        datos_json = dumps(self.datos)
+        
+        peticion = Request.blank('', {}, body=datos_json)
+
+        register = Registry('testing')
+        peticion.registry = register
+        
+        jwt_claims = {'rol': 'tecnicosuperior'}
+        peticion.jwt_claims = jwt_claims 
+        
+        respuesta = usuarios_creacion(peticion)
+
+        self.assertIsInstance(respuesta, HTTPForbidden)  

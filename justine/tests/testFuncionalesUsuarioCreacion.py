@@ -1,5 +1,7 @@
 # coding: utf-8
 
+from modulosFuncionales import credenciales
+
 import logging
 log = logging.getLogger('justine')
 
@@ -22,12 +24,7 @@ class Creacion(TestCase):
         app = main({})
         self.testapp = TestApp(app)
     
-        # TODO: Podrías hacer esto menos público
-        self.credenciales = {'email': 'vtacius', 'password': 'vtacius'}
-        
-        # No pos, nos ahorramos dos líneas en cada método, pos
-        auth = self.testapp.post_json('/auth/login', status=200, params=self.credenciales)
-        self.token = {'www-authorization': str(auth.json_body['token'])}
+        self.token = credenciales('administrador')
         
     @classmethod
     def tearDownClass(self):
@@ -54,4 +51,19 @@ class Creacion(TestCase):
 
         self.assertEqual(respuesta.status_int, 400)
 
+    def test_creacion_usuarios_unauth(self):
+        respuesta = self.testapp.post_json('/usuarios', status=403, params=self.datos)
 
+        self.assertEqual(respuesta.status_int, 403)
+
+    def test_creacion_usuarios_rol_tecnico(self):
+        token = credenciales('tecnicosuperior')
+        respuesta = self.testapp.post_json('/usuarios', status=403, params=self.datos, headers=token)
+        
+        self.assertEqual(respuesta.status_int, 403)
+    
+    def test_creacion_usuarios_rol_usuario(self):
+        token = credenciales('usuario')
+        respuesta = self.testapp.post_json('/usuarios', status=403, params=self.datos, headers=token)
+       
+        self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')

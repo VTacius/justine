@@ -152,7 +152,6 @@ class Usuario:
             raise PermisosInsuficientes("{} no puede modificar a {}".format(self.username, uid) )
 
 class UsuarioTecnico(Usuario):
-   
     def __init__(self, username, claves, claves_ligeras, claves_detalle, claves_modificacion):
         Usuario.__init__(self, username, claves, claves_ligeras, claves_detalle, claves_modificacion)
     

@@ -67,3 +67,16 @@ class Borrado(TestCase):
         respuesta = usuarios_borrado(peticion)
 
         self.assertEqual(type(respuesta), HTTPNotFound)
+
+    def test_usuarios_borrado_rol_tecnico(self):
+        from ..views.usuarios import usuarios_borrado
+        from pyramid.httpexceptions import HTTPForbidden
+        
+        peticion = testing.DummyRequest()
+        peticion.matchdict = {'usuario': self.uid}
+
+        jwt_claims = {'rol': 'tecnicosuperior'}
+        peticion.jwt_claims = jwt_claims
+        
+        respuesta = usuarios_borrado(peticion)
+        self.assertIsInstance(respuesta, HTTPForbidden)

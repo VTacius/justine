@@ -58,9 +58,8 @@ def usuarios_detalle(peticion):
 
     return {'mensaje': contenido}
 
-@view_config(route_name='usuarios_borrado', renderer='json')
+@view_config(route_name='usuarios_borrado', renderer='json', permission='borrado')
 def usuarios_borrado(peticion):
-    
     # Validando datos recibidos
     try:
         uid = peticion.matchdict['usuario'] 
@@ -76,14 +75,20 @@ def usuarios_borrado(peticion):
     except IOError as e:
         # Si el usuario no existe, devolvemos un 404 Not Found
         return exception.HTTPNotFound()
+    except AttributeError as e:
+        return exception.HTTPForbidden('Permisos insuficientes')
+    except KeyError as e:
+        # Ahora debería limitarse a que en jwt_claims no tenga 'rol'
+        return exception.HTTPForbidden('atributos rol o username')
     except Exception as e:
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
+        log.error(e.args)
         return exception.HTTPInternalServerError()
 
     return {'mensaje': mensaje}
     
-@view_config(route_name="usuarios_creacion", renderer='json')
+@view_config(route_name="usuarios_creacion", renderer='json', permission='borrado')
 def usuarios_creacion(peticion):
    
     # Luego vemos si es posible sobreescribir esto de ser necesario
@@ -97,6 +102,8 @@ def usuarios_creacion(peticion):
         return exception.HTTPBadRequest()
     except ValidationError as e:
         return exception.HTTPBadRequest()
+    except AttributeError as e:
+        return exception.HTTPForbidden('Permisos insuficientes')
     except KeyError as e:
         return exception.HTTPBadRequest()
     except ValueError as e:
@@ -111,13 +118,15 @@ def usuarios_creacion(peticion):
     except IOError as e:
         # Si el usuario existe, devolvemos un 409 Conflict
         return exception.HTTPConflict()
+    except AttributeError as e:
+        return exception.HTTPForbidden('Permisos insuficientes')
     except KeyError as e:
         # Ahora debería limitarse a que en jwt_claims no tenga 'rol'
         return exception.HTTPForbidden('atributos rol o username')
     except Exception as e:
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
-        log.error('No puedo ver el error')
+        log.error(e)
         return exception.HTTPInternalServerError()
 
     # La siguiente parece ser LA FORMA de responder en este caso
@@ -170,9 +179,9 @@ def usuarios_actualizacion(peticion):
         # Si el usuario no existe, devolvemos un 404 Not Found
         return exception.HTTPNotFound()
     except Exception as e:
-        log.error(e)
         # Ante cualquier otro error de la aplicación, 500 como debe ser pero más controlado
         # TODO: Ya que por ejemplo, en este lugar puedo hacer loggin
+        log.error(e)
         return exception.HTTPInternalServerError()
         
     return {'mensaje': mensaje}

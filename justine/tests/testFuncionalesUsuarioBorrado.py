@@ -1,5 +1,7 @@
 # coding: utf-8
 
+from modulosFuncionales import credenciales
+
 import logging
 log = logging.getLogger('justine')
 
@@ -22,22 +24,34 @@ class Borrado(TestCase):
         app = main({})
         self.testapp = TestApp(app)
         
-        # TODO: Podrías hacer esto menos público
-        self.credenciales = {'email': 'vtacius', 'password': 'vtacius'}
-        
-        # No pos, nos ahorramos dos líneas en cada método, pos
-        auth = self.testapp.post_json('/auth/login', status=200, params=self.credenciales)
-        self.token = {'www-authorization': str(auth.json_body['token'])}
+        self.token = credenciales('administrador')
 
         # Creamos un usuarios que luego vamos a borrar, al menos un mi mente así funciona estas cosas
         self.testapp.post_json('/usuarios', status=201, params=self.datos, headers=self.token)
     
-    def test_borrado_usuarios(self):
+    def test_usuarios_borrado(self):
         respuesta = self.testapp.delete('/usuarios/' + self.uid, status=200, headers=self.token)
 
         self.assertEqual(respuesta.status_int, 200)
+
+    def test_usuarios_borrado_unauth(self):
+        respuesta = self.testapp.delete('/usuarios/' + self.uid, status=403)
+        
+        self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')
+
+    def test_usuarios_borrado_rol_tecnico(self):
+        token = credenciales('tecnicosuperior')
+        respuesta = self.testapp.delete('/usuarios/' + self.uid, status=403, headers=token)
+
+        self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')
+    
+    def test_usuarios_borrado_rol_usuario(self):
+        token = credenciales('usuario')
+        respuesta = self.testapp.delete('/usuarios/' + self.uid, status=403, headers=token)
+
+        self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')
    
-    def test_borrado_usuarios_inexistente(self):
+    def test_usuarios_borrado_inexistente(self):
         self.uid = "fitzcarraldo"
 
         respuesta = self.testapp.delete('/usuarios/' + self.uid, status=404, headers=self.token)
