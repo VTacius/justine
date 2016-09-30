@@ -140,7 +140,7 @@ def usuarios_creacion(peticion):
 
     return {'mensaje': mensaje}
 
-@view_config(route_name='usuarios_actualizacion', renderer='json')
+@view_config(route_name='usuarios_actualizacion', renderer='json', permission='actualizacion')
 def usuarios_actualizacion(peticion):
     
     # Validando datos recibidos
@@ -152,16 +152,12 @@ def usuarios_actualizacion(peticion):
         if uid != contenido['uid']:
             raise KeyError('Usuarios de contenido y petición no coinciden')
     except TypeError as e:
-        log.error(e)
         return exception.HTTPBadRequest()
     except ValidationError as e:
-        log.error(e)
         return exception.HTTPBadRequest()
     except KeyError as e:
-        log.error(e)
         return exception.HTTPBadRequest()
     except ValueError as e:
-        log.error(e)
         return exception.HTTPBadRequest()
 
     # Realizamos la operacion de Actualización de Usuarios mediante la librería
@@ -171,11 +167,9 @@ def usuarios_actualizacion(peticion):
         usuarios = Usuarios.createAs(username, rol)
         mensaje = usuarios.actualizacion(uid, contenido)
     except KeyError as e:
-        log.error(e)
         # Si contenido enviado no tiene los datos del original
         return exception.HTTPBadRequest()
     except IOError as e:
-        log.error(e)
         # Si el usuario no existe, devolvemos un 404 Not Found
         return exception.HTTPNotFound()
     except Exception as e:
@@ -196,7 +190,7 @@ def usuarios_actualizacion_options(peticion):
     )
     return {'mensaje': 'nada'}
 
-@view_config(route_name='usuarios_modificacion', renderer='json')
+@view_config(route_name='usuarios_modificacion', renderer='json', permission='modificacion')
 def usuarios_modificacion(peticion):
    
     # Validando datos recibidos 
@@ -212,7 +206,7 @@ def usuarios_modificacion(peticion):
     except KeyError as e:
         return exception.HTTPBadRequest(e.args)
     except ValueError as e:
-        return exception.HTTPBadRequest()
+        return exception.HTTPBadRequest(e.args)
 
     # Realizamos la operación de Modificación de Usuarios mediante la librería    
     try:

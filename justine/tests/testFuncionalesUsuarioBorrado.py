@@ -8,6 +8,7 @@ log = logging.getLogger('justine')
 from unittest import TestCase
 
 class Borrado(TestCase):  
+
     @classmethod
     def setUpClass(self):
         self.uid = "lquevedo"
@@ -33,6 +34,13 @@ class Borrado(TestCase):
         respuesta = self.testapp.delete('/usuarios/' + self.uid, status=200, headers=self.token)
 
         self.assertEqual(respuesta.status_int, 200)
+    
+    def test_usuarios_borrado_inexistente(self):
+        uid = "fitzcarraldo"
+
+        respuesta = self.testapp.delete('/usuarios/' + uid, status=404, headers=self.token)
+
+        self.assertEqual(respuesta.status_int, 404)
 
     def test_usuarios_borrado_unauth(self):
         respuesta = self.testapp.delete('/usuarios/' + self.uid, status=403)
@@ -41,20 +49,16 @@ class Borrado(TestCase):
 
     def test_usuarios_borrado_rol_tecnico(self):
         token = credenciales('tecnicosuperior')
+
         respuesta = self.testapp.delete('/usuarios/' + self.uid, status=403, headers=token)
 
         self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')
     
     def test_usuarios_borrado_rol_usuario(self):
         token = credenciales('usuario')
+
         respuesta = self.testapp.delete('/usuarios/' + self.uid, status=403, headers=token)
 
         self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')
    
-    def test_usuarios_borrado_inexistente(self):
-        self.uid = "fitzcarraldo"
-
-        respuesta = self.testapp.delete('/usuarios/' + self.uid, status=404, headers=self.token)
-
-        self.assertEqual(respuesta.status_int, 404)
 

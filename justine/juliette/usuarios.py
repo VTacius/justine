@@ -229,12 +229,10 @@ class UsuarioAdministrador(Usuario):
             raise IOError
 
         # Comprobamos que el contenido recibido tenga todos los atributos que el contenido original ya tenía
-        claves_contenido_original =  contenido_original.keys()
-        claves_contenido_nuevo = contenido.keys()
-        for clave in claves_contenido_original:
-            if not clave in claves_contenido_nuevo:
-                raise KeyError('Faltan claves para actualizar' + clave)
-
+        claves_faltantes = [clave for clave in contenido_original.keys() if not clave in contenido.keys()]
+        if claves_faltantes:
+            raise KeyError('Faltan claves para actualizar' + ','.join(claves_faltantes))
+        
         # Realizamos la operacion Actualización de Usuario
         try:
             fichero = open(direccion, 'w')

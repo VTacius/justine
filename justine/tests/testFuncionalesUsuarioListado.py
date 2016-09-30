@@ -19,12 +19,9 @@ class Listado(TestCase):
         # Obtenemos un token con credenciales de administrador 
         self.token = credenciales('administrador')
 
-    def test_usuarios_listado_unauth(self):
-        respuesta = self.testapp.get('/usuarios', status=403, xhr=True)
-        self.assertRegexpMatches(respuesta.body, 'Access was denied to this resource')
-
     def test_usuarios_listado(self):
         respuesta = self.testapp.get('/usuarios', status=200, xhr=True, headers=self.token)
+
         self.assertGreaterEqual(len(respuesta.json_body), 15)
 
     def test_usuarios_busqueda(self):
@@ -36,3 +33,10 @@ class Listado(TestCase):
         busqueda = '?filtrador=mm'
         respuesta = self.testapp.get('/usuarios' + busqueda, status=200, xhr=True, headers=self.token)
         self.assertGreaterEqual(len(respuesta.json_body), 15)
+
+
+    def test_usuarios_listado_unauth(self):
+        respuesta = self.testapp.get('/usuarios', status=403, xhr=True)
+        
+        self.assertRegexpMatches(respuesta.body, 'Access was denied to this resource')
+

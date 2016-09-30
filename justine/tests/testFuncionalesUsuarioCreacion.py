@@ -8,6 +8,7 @@ log = logging.getLogger('justine')
 from unittest import TestCase
 
 class Creacion(TestCase):
+
     @classmethod
     def setUpClass(self):
         self.uid = "opineda"
@@ -30,13 +31,13 @@ class Creacion(TestCase):
     def tearDownClass(self):
         self.testapp.delete('/usuarios/' + self.uid, status=200, headers=self.token)
 
-    def test_creacion_usuarios(self):
+    def test_usuarios_creacion(self):
 
         respuesta = self.testapp.post_json('/usuarios', status=201, params=self.datos, headers=self.token)
        
         self.assertEqual(respuesta.status_int, 201)
     
-    def test_creacion_usuarios_existente(self):
+    def test_usuarios_creacion_existente(self):
         datos = self.datos
         datos['uid'] = 'alortiz'
 
@@ -44,26 +45,28 @@ class Creacion(TestCase):
         
         self.assertEqual(respuesta.status_int, 409)
     
-    def test_creacion_usuarios_peticion_malformada(self):
+    def test_usuarios_creacion_peticion_malformada(self):
         datos = "Mínimo esfuerzo para máximo daño"
 
         respuesta = self.testapp.post_json('/usuarios', status=400, params=datos, headers=self.token)
 
         self.assertEqual(respuesta.status_int, 400)
 
-    def test_creacion_usuarios_unauth(self):
+    def test_usuarios_creacion_unauth(self):
         respuesta = self.testapp.post_json('/usuarios', status=403, params=self.datos)
 
-        self.assertEqual(respuesta.status_int, 403)
+        self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')
 
-    def test_creacion_usuarios_rol_tecnico(self):
+    def test_usuarios_creacion_rol_tecnico(self):
         token = credenciales('tecnicosuperior')
+
         respuesta = self.testapp.post_json('/usuarios', status=403, params=self.datos, headers=token)
         
-        self.assertEqual(respuesta.status_int, 403)
+        self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')
     
-    def test_creacion_usuarios_rol_usuario(self):
+    def test_usuarios_creacion_rol_usuario(self):
         token = credenciales('usuario')
+
         respuesta = self.testapp.post_json('/usuarios', status=403, params=self.datos, headers=token)
        
         self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')

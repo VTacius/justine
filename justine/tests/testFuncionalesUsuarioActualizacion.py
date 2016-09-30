@@ -1,5 +1,7 @@
 # coding: utf-8
 
+from modulosFuncionales import credenciales
+
 import logging
 log = logging.getLogger('justine')
 
@@ -23,12 +25,7 @@ class Actualizacion(TestCase):
         app = main({})
         self.testapp = TestApp(app)
         
-        # TODO: Podrías hacer esto menos público
-        self.credenciales = {'email': 'vtacius', 'password': 'vtacius'}
-        
-        # No pos, nos ahorramos dos líneas en cada método, pos
-        auth = self.testapp.post_json('/auth/login', status=200, params=self.credenciales)
-        self.token = {'www-authorization': str(auth.json_body['token'])}
+        self.token = credenciales('administrador') 
 
         # Creamos un usuario totalmente diferente a todo lo creado, estoy casi seguro que esta parte si debe funcionar de esta forma
         self.testapp.post_json('/usuarios', status=201, params=self.datos, headers=self.token)
@@ -37,7 +34,7 @@ class Actualizacion(TestCase):
     def tearDownClass(self):
         self.testapp.delete('/usuarios/' + self.uid, status=200, headers=self.token)   
      
-    def test_actualizacion_usuarios(self):
+    def test_usuarios_actualizacion(self):
         datos = self.datos
         datos['corpus']['givenName'] = 'Claudia Carolina'
         datos['corpus']['sn'] = 'Peña Nieto'
@@ -46,15 +43,15 @@ class Actualizacion(TestCase):
 
         self.assertEqual(respuesta.status_int, 200)
 
-    def test_actualizacion_usuarios_noexistente(self):
-        datos = self.datos
+    def test_usuarios_actualizacion_noexistente(self):
+        datos = dict(self.datos)
         uid = datos['corpus']['uid'] = 'fitzcarraldo'
 
         respuesta = self.testapp.put_json('/usuarios/' + uid, status=404, params=datos, headers=self.token)
     
         self.assertEqual(respuesta.status_int, 404)
     
-    def test_actualizacion_usuarios_uid_nocoincidente(self):
+    def test_usuarios_actualizacion_uid_nocoincidente(self):
         datos = self.datos
         datos['corpus']['uid'] = 'fitzcarraldo' 
 
@@ -62,18 +59,36 @@ class Actualizacion(TestCase):
         
         self.assertEqual(respuesta.status_int, 400)
     
-    def test_actualizacion_usuarios_uid_peticion_malformada(self):
+    def test_usuarios_actualizacion_uid_peticion_malformada(self):
         datos = 'Mínimo esfuerzo para máximo daño'
-        self.datos['corpus']['uid'] = 'cpena'
-        self.uid = 'cpena'
 
         respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=400, params=datos, headers=self.token)
 
         self.assertEqual(respuesta.status_int, 400)
 
-    def test_actualizacion_usuarios_claves_incompletas(self):
+    def test_usuarios_actualizacion_claves_incompletas(self):
         sn = 'Castro Ortega'
         datos = {'corpus': {'uid': self.uid, 'sn': sn}}
 
-        self.testapp.put_json('/usuarios/' + self.uid, status=400, params=datos, headers=self.token)
+        respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=400, params=datos, headers=self.token)
 
+    def test_usuarios_actualizacion_unauth(self):
+        self.datos['corpus']['uid'] = self.uid
+        
+        respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=403, params=self.datos)
+
+        self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')
+    
+    def test_usuarios_actualizacion_rol_tecnico(self):
+        self.datos['corpus']['uid'] = self.uid
+        
+        respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=403, params=self.datos)
+
+        self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')
+    
+    def test_usuarios_actualizacion_rol_usuario(self):
+        self.datos['corpus']['uid'] = self.uid
+        
+        respuesta = self.testapp.put_json('/usuarios/' + self.uid, status=403, params=self.datos)
+
+        self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')
