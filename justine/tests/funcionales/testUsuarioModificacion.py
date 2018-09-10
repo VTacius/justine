@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from modulosFuncionales import credenciales
+from modulosFuncionales import credenciales, cargar_datos, creador_test
 
 import logging
 log = logging.getLogger('justine')
@@ -11,9 +11,10 @@ class Modificacion(TestCase):
     
     @classmethod
     def setUpClass(self):
-        self.uid = 'mrmarconi'
-        self.datos = {'corpus': {'uid': self.uid, 'sn':'Mendoza', 'givenName': 'Ana', 'o': {'nombre': 'Secretaría de Estado SS Ministerio de Salud', 'id': 1038}}}
-        
+        contenido = cargar_datos()
+        self.uid = contenido[3]['uid']
+        self.datos = {"corpus": contenido[3]}
+
         from justine import main
         from webtest import TestApp
 
@@ -50,23 +51,23 @@ class Modificacion(TestCase):
 
         respuesta = self.testapp.get('/usuarios/' + self.uid, status=200, headers=self.token)
 
-        self.assertEqual(respuesta.json_body['mensaje']['sn'], datos['corpus']['sn'])
+        self.assertEqual(respuesta.json_body['mensaje'][0]['sn'], datos['corpus']['sn'])
 
     def test_usuarios_modificacion_nopermitido_clave(self):
         clave_falsa = 'espejismo'
         contenido_falso = 'Contenido falso'
         datos = {'corpus': {'uid': self.uid, clave_falsa: contenido_falso}}
+
         respuesta = self.testapp.patch_json('/usuarios/' + self.uid, status=400, params=datos, headers=self.token)
        
-        self.assertRegexpMatches(str(respuesta.json_body), "{}\'\: \'unknown field".format(clave_falsa))
 
     def test_usuarios_modificacion_agregando_clave(self):
         datos = {'corpus': {'uid': self.uid, 'title': 'Sombrerero'}}
         self.testapp.patch_json('/usuarios/' + self.uid, status=200, params=datos, headers=self.token)
         
         respuesta = self.testapp.get('/usuarios/' + self.uid, status=200, headers=self.token)
-        
-        self.assertEqual(respuesta.json_body['mensaje']['title'], datos['corpus']['title'])
+       
+        self.assertEqual(respuesta.json_body['mensaje'][0]['title'], datos['corpus']['title'])
 
     def test_usuarios_modificacion_unauth(self):
         datos = {'corpus': {'uid': self.uid, 'title': 'Sombrerero'}}
@@ -77,26 +78,3 @@ class Modificacion(TestCase):
         
         self.assertRegexpMatches(str(respuesta.json_body), 'Access was denied to this resource')
     
-    def test_usuarios_modificacion_rol_usuario_otro_usuario(self):
-        token = credenciales('usuario')
-        datos = {'corpus': {'uid': self.uid, 'title': 'Sombrerero'}}
-        
-        respuesta = self.testapp.patch_json('/usuarios/' + self.uid, status=403, params=datos, headers=token)
-        
-        self.assertRegexpMatches(str(respuesta.json_body), "Access was denied to this resource".format(self.uid))
-
-    def test_usuarios_modificacion_rol_tecnico_otro_usuario(self):
-        token = credenciales('tecnicosuperior')
-        datos = {'corpus': {'uid': self.uid, 'title': 'Sombrerero'}}
-
-        respuesta = self.testapp.patch_json('/usuarios/' + self.uid, status=403, params=datos, headers=token)
-
-        self.assertRegexpMatches(str(respuesta.json_body), "no puede modificar a {}".format(self.uid))
-    
-    def test_usuarios_modificacion_modificacion_usuario_mismatch(self):
-        usuario = 'fitzcarraldo'
-        datos = {'corpus': {'uid': self.uid, 'title': 'Sombrerero'}}
-        
-        respuesta = self.testapp.patch_json('/usuarios/' + usuario, status=400, params=datos, headers=self.token)
-        
-        self.assertRegexpMatches(str(respuesta.json_body), 'Usuarios de contenido y .+ no coinciden')

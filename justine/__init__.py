@@ -8,16 +8,6 @@ from .security import groupfinder
 from pyramid.request import Request
 from pyramid.response import Response
 
-import logging
-log = logging.getLogger('justine')
-
-def request_factory(environ):
-    environ['HTTP_ACCEPT'] = 'application/json' 
-    request = Request(environ)
-    request.response = Response()
-    request.add_response_callback(finish_callback)
-    return request
-
 def finish_callback(peticion, respuesta):
     respuesta.headerlist.extend(
         (
@@ -27,6 +17,13 @@ def finish_callback(peticion, respuesta):
         )
     )
     return respuesta
+
+def request_factory(environ):
+    environ['HTTP_ACCEPT'] = 'application/json' 
+    request = Request(environ)
+    request.response = Response()
+    request.add_response_callback(finish_callback)
+    return request
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.

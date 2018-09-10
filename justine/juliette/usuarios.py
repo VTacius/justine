@@ -1,7 +1,7 @@
 # coding: utf-8
 
 # Excepciones con nombres llamativos ayudarán a la legibilidad del código
-from ..juliette.Exceptions import RolInvalido, PermisosInsuficientes
+#from ..juliette.Exceptions import RolInvalido, PermisosInsuficientes
 
 import datetime
 # Las siguientes librerías son parte del core actual, podrían volverse innecesarias cuando use la
@@ -37,9 +37,9 @@ class Usuarios:
                 'usoBuzon', 'volumenBuzon']
             claves_modificacion = ['sn', 'givenName', 'o', 'ou', 'dui', 'nit', 'fecha', 'title', 'pregunta', 'respuesta']
             return UsuarioAdministrador(username, claves, claves_ligeras, claves_detalle, claves_modificacion)
-        else:
-            # No tenemos un rol válido, lanzamos un error personalizado RolInvalido
-            raise RolInvalido("{} con {}".format(username, rol)) 
+        #else:
+        #    # No tenemos un rol válido, lanzamos un error personalizado RolInvalido
+        #    raise RolInvalido("{} con {}".format(username, rol)) 
 
 class Usuario:
    
@@ -148,8 +148,8 @@ class Usuario:
         """
         if uid == self.username:
             return self._modificacion(uid, contenido)
-        else:
-            raise PermisosInsuficientes("{} no puede modificar a {}".format(self.username, uid) )
+        #else:
+        #    raise PermisosInsuficientes("{} no puede modificar a {}".format(self.username, uid) )
 
 class UsuarioTecnico(Usuario):
     def __init__(self, username, claves, claves_ligeras, claves_detalle, claves_modificacion):
@@ -159,8 +159,8 @@ class UsuarioTecnico(Usuario):
         # TODO: Existe un rol en el que esta modificación ocurre sólo con unos cuantos usuarios
         if uid == self.username:
             return Usuario._modificacion(uid, contenido)
-        else:
-            raise PermisosInsuficientes("{} no puede modificar a {}".format(self.username, uid) )
+        #else:
+        #    raise PermisosInsuficientes("{} no puede modificar a {}".format(self.username, uid) )
 
 class UsuarioAdministrador(Usuario):
    

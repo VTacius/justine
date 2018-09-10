@@ -1,5 +1,5 @@
 # coding: utf-8
-# Esto es una petición a una base de datos
+# TODO: Esto sucede contra la API misma de Samba
 
 import logging
 log = logging.getLogger('justine')
@@ -9,7 +9,8 @@ USERS = ['vtacius', 'alortiz', 'cpena', 'figaro']
 # Esto es otra peticion a una base de datos
 ROLES = {
             'vtacius': ['administrador', 'tecnicosuperior', 'tecnicoatencion'], 
-            'alortiz': ['tecnicosuperior', 'tecnicoatencion'],
+            'kpenate': ['administrador', 'tecnicosuperior', 'tecnicoatencion'],
+            'alortiz': ['administrador', 'tecnicosuperior', 'tecnicoatencion'],
             'usuario': ['usuario'],
             'figaro': ['tecnicoatencion'],
             'cpena': ['tecnicoatencion']

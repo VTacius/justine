@@ -3,17 +3,23 @@
 from pyramid.view import view_config
 from pyramid import httpexceptions as exception  
 
-from ..juliette.grupos import Grupos
+from ..juliette.modelGroup import Grupo
+from ..juliette.excepciones import DatosException, ConflictoException
 
-from cerberus import ValidationError
+#from ..schemas.grupos import EsquemaGrupo
 
 import logging
-log = logging.getLogger('justine')
+log = logging.getLogger(__name__)
 
 @view_config(route_name='grupos_listado', renderer='json', permission='listar')
 def grupos_listado(peticion):
-    grupos = Grupos()
-    contenido =  grupos.listar()[:150]
+    try:
+        grupo = Grupo()
+        contenido = grupo.obtener()
+    except Exception as e:
+        log.error(e)
+        return exception.HTTPInternalServerError()
+    print contenido
     return contenido
 
 @view_config(route_name='grupos_listado_options', renderer='json')
@@ -22,25 +28,21 @@ def grupos_listado_options(peticion):
 
 @view_config(route_name='grupos_detalle', renderer='json')
 def grupos_detalle (peticion):
-
-    # Validando datos recibidos
+    
     try:
-        gidNumber = peticion.matchdict['grupo'] 
+        uid = peticion.matchdict['grupo'] 
     except KeyError as e:
-        log.error(e)
         return exception.HTTPBadRequest()
     
-    grupos = Grupos()
-   
-    # Realizamos la operación Detalle de Grupos mediante la librería 
-    try: 
-        contenido = grupos.detalle(gidNumber)
-    except IOError as e:
-        log.error(e)
+    # Realizamos la operación Detalle de Usuarios mediante la librería
+    try:
+        grupo = Grupo()
+        contenido = grupo.obtener(uid)
+    except DatosException as e:
         return exception.HTTPNotFound()
     except Exception as e:
         log.error(e)
         return exception.HTTPInternalServerError()
-    
+
     return {'mensaje': contenido}
     

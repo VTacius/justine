@@ -11,7 +11,6 @@ def creador_test():
     
 def cargar_datos():
     from json import load
-    # TODO: Estoy casi seguro que esto va en otro lado
     fichero = open('/root/ambiente-justine/justine-api/justine/tests/datos.json', 'rb')
     contenido = load(fichero)
 

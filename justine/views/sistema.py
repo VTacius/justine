@@ -3,7 +3,10 @@
 from pyramid.view import view_config
 from pyramid import httpexceptions as exceptions
 
-# No tendría sentido que manejemos logggin desde tan abajo de la aplicación, que no sea en desarrollo
+from ..juliette.conexion import parametros, credenciales, autenticacion
+from ..juliette.excepciones import AutenticacionException
+from ..juliette.modelBase import diccionador
+
 import logging
 log = logging.getLogger('justine')
 
@@ -14,46 +17,42 @@ def login_option(peticion):
 
 @view_config(route_name='logueo', renderer='json')
 def login(peticion):
+    # TODO: No, con este no autentico a la aplicación, este punto debe ser algo a usar
+    #  por la otra aplicación para realmente autenticar a los usuarios
    
     try:
         datos = peticion.json_body
+        usuario = datos['usuario'].encode('ascii')
+        password = datos['password'].encode('ascii')
     except ValueError as e:
         return exceptions.HTTPBadRequest()
-
-    try:
-        usuario = datos['email']
-        password = datos['password']
     except KeyError as e:
         return exceptions.HTTPBadRequest()  
     
-    # TODO: Voy a poner esto por acá para tomar datos, pero esto debería venir
-    # de nuestra libreria juliette    
-    # Luego sigue una que le envía al usuario los roles. Tenés que recordar que los 
-    # roles los verificamos acá, le enviamos al cliente el rol para que el haga 
-    # los use en su lógica
+    lp = parametros()
+    creds = credenciales(usuario, password, lp)
+    
+    resultado = autenticacion(creds, lp)
+
+    if (resultado):
+        contenido = [diccionador([], u) for u in resultado]
+    else:
+        return exceptions.HTTPForbidden()
+
     INFORMACION = {
         'vtacius': ['Alexander Ortíz', 'administrador'],
         'alortiz': ['Alexander Ortega', 'tecnicosuperior'],
         'figaro': ['Estereotipo Estándar', 'tecnicoatencion'],
         'cpena': ['Estereotipo Secular', 'tecnicoatencion'],
+        'kpenate': ['Estereotipo Secular', 'tecnicoatencion'],
         'usuario': ['Usuarios súper estándar', 'usuario']
     }
 
-    # Acá empieza la operación que permite autenticar a los usuarios
-    try:
-        # Acá va una función que hace magia, pero después, por favor
-        user_id = usuario if usuario == password and usuario in INFORMACION else False
-        # Acá termina la función que hace magia
 
-        datos_usuario = INFORMACION.get(usuario, [])
+    datos_usuario = INFORMACION.get(usuario, [])
 
-        if user_id:
-            return {
-                'gecos': datos_usuario[0],
-                'permisos': datos_usuario[1],
-                'token': peticion.create_jwt_token(user_id, rol = datos_usuario[1])
+    return {
+            'gecos': datos_usuario[0],
+            'permisos': datos_usuario[1],
+            'token': peticion.create_jwt_token(usuario, rol = datos_usuario[1])
             }
-        else:
-            return exceptions.HTTPUnauthorized()
-    except Exception as e:
-        return exceptions.HTTPInternalServerError()

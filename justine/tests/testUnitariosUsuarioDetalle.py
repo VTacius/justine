@@ -5,9 +5,6 @@ from pyramid import testing
 from pyramid.registry import Registry
 from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest
 
-import logging
-log = logging.getLogger('justine')
-
 class Detalle(TestCase):
     def setUp(self):
         self.config = testing.setUp()
@@ -25,7 +22,7 @@ class Detalle(TestCase):
         peticion.jwt_claims = jwt_claims 
 
         respuesta = usuarios_detalle(peticion)
-        self.assertEqual(respuesta['mensaje']['givenName'], 'Alexander')
+        self.assertEqual(respuesta['mensaje'][0]['givenName'], 'Alexander')
 
     def test_usuarios_detalle_contador(self):
         from ..views.usuarios import usuarios_detalle
@@ -38,18 +35,6 @@ class Detalle(TestCase):
         
         respuesta = usuarios_detalle(peticion)
         self.assertTrue('mensaje' in respuesta)
-
-    def test_usuarios_detalle_wrong_rol(self):
-        from ..views.usuarios import usuarios_detalle
-
-        peticion = testing.DummyRequest()
-        peticion.matchdict = {'usuario': 'alortiz'}
-        
-        jwt_claims = {'rol': 'guerrillero'}
-        peticion.jwt_claims = jwt_claims
-
-        respuesta = usuarios_detalle(peticion)
-        self.assertIsInstance(respuesta, HTTPForbidden)
 
     def test_usuarios_detalle_wrong_matchdict(self):
         from ..views.usuarios import usuarios_detalle
