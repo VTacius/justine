@@ -3,7 +3,6 @@ from pyramid.config import Configurator
 
 # Configuramos seguridad
 from pyramid.authorization import ACLAuthorizationPolicy
-from .security import groupfinder
 
 from pyramid.request import Request
 from pyramid.response import Response
@@ -31,9 +30,8 @@ def main(global_config, **settings):
     config = Configurator(settings=settings, root_factory='.resources.Root')
     # Configuramos seguridad
     config.set_authorization_policy(ACLAuthorizationPolicy())
-    config.include('pyramid_jwt')
-    # Expira luego de 24 horas. Me pareció lo más indicado
-    config.set_jwt_authentication_policy('c3cr3t0', http_header='www-authorization', callback=groupfinder, expiration=86400)
+    config.include('.tokenPolicy')
+    config.set_token_authentication_policy('c3cr3t0', http_header='www-authorization')
     # Rutas 
     # Rutas para logueo del sistema
     config.add_route('logueo', '/auth/login', request_method='POST')

@@ -11,6 +11,7 @@ git clone git@github.com:VTacius/justine-api.git
 source bin/activate
 pip install pyramid
 
+ln -s /usr/lib/python2.7/dist-packages/Crypto/ /root/ambiente-justine/local/lib/python2.7/site-packages/
 ln -s /usr/lib/python2.7/dist-packages/samba/ ~/ambiente-justine/lib/python2.7/
 ln -s /usr/lib/python2.7/dist-packages/talloc.x86_64-linux-gnu.so ~/ambiente-justine/lib/python2.7/
 ln -s /usr/lib/python2.7/dist-packages/ldb.so ~/ambiente-justine/lib/python2.7/

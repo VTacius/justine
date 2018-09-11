@@ -51,8 +51,11 @@ def login(peticion):
 
     datos_usuario = INFORMACION.get(usuario, [])
 
+    rol = datos_usuario[1]
+
     return {
+            'usuario': usuario,
             'gecos': datos_usuario[0],
             'permisos': datos_usuario[1],
-            'token': peticion.create_jwt_token(usuario, rol = datos_usuario[1])
+            'token': peticion.create_token(usuario, rol)
             }
