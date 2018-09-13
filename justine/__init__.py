@@ -54,6 +54,7 @@ def main(global_config, **settings):
     config.add_route('usuarios_creacion', '/usuarios', request_method='POST')
     config.add_route('usuarios_listado', '/usuarios', request_method='GET')
     config.add_route('usuarios_listado_options', '/usuarios', request_method='OPTIONS')
+    config.add_route('usuarios_existente', '/usuarios/{usuario}', request_method='HEAD')
     config.add_route('usuarios_detalle', '/usuarios/{usuario}', request_method='GET')
     config.add_route('usuarios_actualizacion', '/usuarios/{usuario}', request_method='PUT')
     config.add_route('usuarios_actualizacion_options', '/usuarios/{usuario}', request_method='OPTIONS')

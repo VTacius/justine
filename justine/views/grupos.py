@@ -42,6 +42,7 @@ def grupos_creacion(peticion):
         log.warning(e)
         return exception.HTTPConflict(e)
     except DatosException as e:
+        log.warning('key error')
         log.warning(e)
         return exception.HTTPBadRequest(e)
 

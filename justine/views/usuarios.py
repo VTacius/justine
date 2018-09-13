@@ -14,17 +14,12 @@ log = logging.getLogger(__name__)
 @view_config(route_name="usuarios_creacion", renderer='json', permission='creacion')
 def usuarios_creacion(peticion):
    
-    # Luego vemos si es posible sobreescribir esto de ser necesario
-    respuesta = peticion.response
-    
     # Validando datos recibidos 
     try:
         v = EsquemaUsuario('uid', 'givenName', 'o', 'sn', 'userPassword')
         contenido = v.validacion(peticion.json_body['corpus'])
     except KeyError as e:
-        log.warning(e)
-        return exception.HTTPBadRequest(e)
-    except ValueError as e:
+        # No existe el corpus
         log.warning(e)
         return exception.HTTPBadRequest(e)
     except TypeError as e:
@@ -32,6 +27,7 @@ def usuarios_creacion(peticion):
         log.warning(e)
         return exception.HTTPBadRequest(e)
     except DatosException as e:
+        # En este punto, es nuestra librería de validación la que arroja un error
         log.warning(e)
         return exception.HTTPBadRequest(e)
 
@@ -45,7 +41,8 @@ def usuarios_creacion(peticion):
         log.warning(e)
         return exception.HTTPConflict(e)
     except DatosException as e:
-        log.warning(contenido)
+        # En este punto, estamos intentado configurar valores inválidos por inconsistencias 
+        #  (Eje: Configurar como grupo principal a uno inexistente
         log.warning(e)
         return exception.HTTPBadRequest(e)
 
@@ -59,6 +56,26 @@ def usuarios_creacion(peticion):
     )
 
     return {'mensaje': contenido}
+
+@view_config(route_name='usuarios_existente', renderer='json', permission='listar')
+def usuarios_existente(peticion):
+    try:
+        uid = peticion.matchdict['usuario'] 
+    except KeyError as e:
+        # No existe el parametro usuario
+        return exception.HTTPBadRequest()
+    
+    # Realizamos la operación Detalle de Usuarios mediante la librería
+    try:
+        usuario = Usuario()
+        contenido = usuario.obtener(uid)
+    except DatosException as e:
+        return exception.HTTPNotFound()
+    except Exception as e:
+        log.error(e)
+        return exception.HTTPInternalServerError()
+
+    return {}
 
 @view_config(route_name='usuarios_listado', renderer='json', permission='listar')
 def usuarios_listado(peticion):
@@ -82,6 +99,7 @@ def usuarios_detalle(peticion):
     try:
         uid = peticion.matchdict['usuario'] 
     except KeyError as e:
+        # No existe el parametro usuario
         return exception.HTTPBadRequest()
     
     # Realizamos la operación Detalle de Usuarios mediante la librería
@@ -111,6 +129,7 @@ def usuarios_actualizacion(peticion):
         if uid != contenido['uid']:
             return exception.HTTPBadRequest('Usuarios de contenido y petición no coinciden')
     except KeyError as e:
+        # No existe el corpus
         log.warning(e)
         return exception.HTTPBadRequest(e)
     except TypeError as e:
@@ -118,6 +137,7 @@ def usuarios_actualizacion(peticion):
         log.warning(e)
         return exception.HTTPBadRequest(e)
     except DatosException as e:
+        # En este punto, es nuestra librería de validación la que arroja un error
         log.warning(e)
         return exception.HTTPBadRequest(e)
     
@@ -131,6 +151,8 @@ def usuarios_actualizacion(peticion):
         log.warning(e)
         return exception.HTTPNotFound(e)
     except DatosException as e:
+        # Entre otras verificaciones sobre la integridad de los datos, se asegura que no quitemos datos
+        #  (Esto se supone que es una convención para este punto de API)
         log.warning(e)
         return exception.HTTPBadRequest(e)
     except Exception as e:
@@ -159,6 +181,7 @@ def usuarios_modificacion(peticion):
         username = peticion.matchdict['usuario']
         contenido = v.validacion(peticion.json_body['corpus'])
     except KeyError as e:
+        # No existe el corpus o el parametro usuario
         log.warning(e)
         return exception.HTTPBadRequest(e)
     except TypeError as e:
@@ -166,6 +189,7 @@ def usuarios_modificacion(peticion):
         log.warning(e)
         return exception.HTTPBadRequest(e)
     except DatosException as e:
+        # En este punto, es nuestra librería de validación la que arroja un error
         log.warning(e)
         return exception.HTTPBadRequest(e)
     
@@ -195,6 +219,7 @@ def usuarios_borrado(peticion):
         v = EsquemaUsuario()
         username = peticion.matchdict['usuario']
     except KeyError as e:
+        # No existe el corpus
         log.warning(e)
         return exception.HTTPBadRequest(e)
     except TypeError as e:
@@ -202,6 +227,7 @@ def usuarios_borrado(peticion):
         log.warning(e)
         return exception.HTTPBadRequest(e)
     except DatosException as e:
+        # En este punto, es nuestra librería de validación la que arroja un error
         log.warning(e)
         return exception.HTTPBadRequest(e)
     

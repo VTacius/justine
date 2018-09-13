@@ -105,21 +105,21 @@ def ldifeador(datos_actuales, datos_nuevos):
     
     return contenido
 
-def normalizador(traduccion_claves, datos, resultado = {}):
+def normalizador(traduccion_claves, datos, result = False):
     """
     Para cada atributo en dato, convierte la clave a minúscula y se asegura que esta sea ascii; 
      luego, encodea cada dato como utf-8, algo sumamente necesario para meterlo a samDB sin problema
     Además, cumple con una decisión de diseño: Mantener los nombres de claves del esquema original, 
      razón por la cual es necesario traducir
     """
-    print datos.keys()
-    print traduccion_claves
+
+    # Este es algo que tendrás que recordar por el resto de tu vida
+    resultado = {} if not result else result
     for k in datos.keys():
         clave = k.lower() if k not in traduccion_claves else traduccion_claves[k].lower()
         c = clave.encode('ascii', 'ignore')
         d = datos[k].encode('utf-8')
         resultado[c] = d
-
     return resultado
     
 def operacion(func):
@@ -133,6 +133,7 @@ def operacion(func):
             log.warning(e)
             raise AutenticacionException(e)
         except TypeError as e:
+            # Intento de pasar argumentos desconocidos para las funciones propias de la API Samba
             log.warning(e)
             raise DatosException(e)
         except Exception as e:

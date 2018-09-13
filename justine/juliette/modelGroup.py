@@ -12,7 +12,7 @@ log = logging.getLogger('justine')
 
 # La idea es que esto defina gran parte del comportamiento de la clase
 configuracion = {
-        'claves': [],
+        'claves': ['cn', 'type', 'description', 'mail', 'notes'],
         'traduccion' : {'cn': 'groupName', 'mail': 'mailaddress'},
         'borrables': ['objectSid', 'objectGUID']
 }
