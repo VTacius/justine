@@ -43,7 +43,7 @@ class Base(object):
 	        if i not in listado_actual:
 	            return i
 	   
-	    return listado[-1] + 1
+	    return listado_actual[-1] + 1
 
     def _obtener_uid_number(self, minimo, uid):
         contenido = self.obtener(attrs=[uid])
@@ -134,7 +134,7 @@ def operacion(func):
             raise AutenticacionException(e)
         except TypeError as e:
             log.warning(e)
-            raise DatosException(e) 
+            raise DatosException(e)
         except Exception as e:
             log.warning(e)
             if isinstance(e.args, tuple):
@@ -145,6 +145,7 @@ def operacion(func):
                     if msg.find('Unable to find user') == 0 or msg.find('unable to parse ldif string') == 0 or msg.find('unable to import dn object') == 0:
                         raise OperacionException(e)
             raise Exception(e)
+
 
     return wrapper
 

@@ -1,7 +1,8 @@
-#!/usr/bin/python2.7 # coding: utf-8
+#!/usr/bin/python2.7 
+# coding: utf-8
 
 from modelBase import Base, operacion, diccionador, ldifeador, normalizador
-from excepciones import OperacionException, DatosException
+from excepciones import ConflictoException, OperacionException, DatosException
 
 from ldb import SCOPE_SUBTREE, OID_COMPARATOR_AND
 from samba.dsdb import UF_NORMAL_ACCOUNT
@@ -12,12 +13,15 @@ log = logging.getLogger('justine')
 # La idea es que esto defina gran parte del comportamiento de la clase
 configuracion = {
         'claves': [],
-        'traduccion' : {},
+        'traduccion' : {'cn': 'groupName', 'mail': 'mailaddress'},
         'borrables': ['objectSid', 'objectGUID']
 }
 
-# Este es el GID mínimo para usuario. Int por favor
+# Este es el GID mínimo para grupo. Int por favor
 GRUPO_MINIMO_GID = 1005 
+
+
+
 
 class Grupo(Base):
     
@@ -25,13 +29,18 @@ class Grupo(Base):
         super(Grupo, self).__init__()
         
         self.claves = configuracion['claves']
-        self.traduccion = configuracion['traduccion']
         self.borrables = configuracion['borrables']
+        self.traduccion = configuracion['traduccion']
         
         # Desde Base, tenemos: lp, creds, conexion 
 
     @operacion
     def crear(self, grupo, datos):
+        existe = len(self.__buscar_grupo(self.conexion, grupo)) > 0
+        if existe:
+            log.warning("El grupo %s ya existe" % grupo)
+            raise ConflictoException("El grupo %s ya existe" % grupo)
+        
         datos['nisDomain'] = self.get_nisdomain()
 
         datos['gidNumber'] = self._obtener_uid_number(GRUPO_MINIMO_GID, 'gidNumber')
@@ -53,4 +62,15 @@ class Grupo(Base):
 
         if len(resultado) == 0:
             raise DatosException('No se encontraron datos') 
+
         return resultado
+    
+    @operacion
+    def borrar(self, grupo):
+        contenido = self.__buscar_grupo(self.conexion, grupo)
+        if len(contenido) == 0:
+            raise ConflictoException('El grupo %s no existe' % grupo) 
+        
+        self.conexion.deletegroup(grupo)
+ 
+        return "Eliminado el grupo %s" % grupo

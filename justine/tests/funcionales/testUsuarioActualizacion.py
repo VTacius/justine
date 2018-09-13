@@ -14,7 +14,7 @@ class Actualizacion(TestCase):
 
     @classmethod
     def setUpClass(self):
-        contenido = cargar_datos()
+        contenido = cargar_datos('usuario')
         
         self.uid = contenido[0]['uid']
         self.datos = {"corpus": contenido[0]}

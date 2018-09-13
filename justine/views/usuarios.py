@@ -45,6 +45,7 @@ def usuarios_creacion(peticion):
         log.warning(e)
         return exception.HTTPConflict(e)
     except DatosException as e:
+        log.warning(contenido)
         log.warning(e)
         return exception.HTTPBadRequest(e)
 
@@ -184,7 +185,6 @@ def usuarios_modificacion(peticion):
         return exception.HTTPInternalServerError(e)
     
     return {'mensaje': contenido}
-   
 
 @view_config(route_name='usuarios_borrado', renderer='json', permission='borrado')
 def usuarios_borrado(peticion):
@@ -197,14 +197,15 @@ def usuarios_borrado(peticion):
     except KeyError as e:
         log.warning(e)
         return exception.HTTPBadRequest(e)
+    except TypeError as e:
+        # Se refiere a que no se hayan enviado datos json correctamente formateados
+        log.warning(e)
+        return exception.HTTPBadRequest(e)
     except DatosException as e:
         log.warning(e)
         return exception.HTTPBadRequest(e)
-    except Exception as e:
-        log.error(e)
-        return exception.HTTPInternalServerError(e)
     
-    # Realizamos la operacion Actualización (Con datos INCOMPLETOS) de Usuarios mediante la librería
+    # Realizamos la operacion Borrado  Usuarios mediante la librería
     try:
         usuario = Usuario()
         contenido = usuario.borrar(username)

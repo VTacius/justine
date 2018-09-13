@@ -11,7 +11,7 @@ class Modificacion(TestCase):
     
     @classmethod
     def setUpClass(self):
-        contenido = cargar_datos()
+        contenido = cargar_datos('usuario')
         self.uid = contenido[3]['uid']
         self.datos = {"corpus": contenido[3]}
 

@@ -11,7 +11,7 @@ class Borrado(TestCase):
 
     @classmethod
     def setUpClass(self):
-        contenido = cargar_datos()
+        contenido = cargar_datos('usuario')
          
         self.uid = contenido[1]['uid']
         self.datos = {"corpus": contenido[1]}

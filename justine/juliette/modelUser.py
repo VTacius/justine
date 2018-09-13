@@ -17,16 +17,15 @@ configuracion = {
         'borrables': ['objectSid', 'objectGUID']
 }
 
-# Este es el grupo por defecto. Sí, debe ser Str
-GRUPO_POR_DEFECTO = "1005"
 # Este es el UID mínimo para usuario. Int por favor
 USUARIO_MINIMO_UID = 1005 
 
+# Este es el grupo por defecto. Sí, debe ser Str
+GRUPO_POR_DEFECTO = "1005"
+
 class Usuario(Base):
     """
-    NOTA: El "No confiar en los datos que la API recibe del cliente" será diseño
-    NOTA: Loguemos la mayor cantidad de información posible
-
+    TODO: Registrar la mayor cantidad posible de información 
     TODO: Verificar que el usuario exista (¿?)
     """
 
@@ -34,8 +33,8 @@ class Usuario(Base):
         super(Usuario, self).__init__()
        
         self.claves = configuracion['claves']
-        self.traduccion = configuracion['traduccion']
         self.borrables = configuracion['borrables']
+        self.traduccion = configuracion['traduccion']
         
         # Desde Base, tenemos: lp, creds, conexion 
   
@@ -134,7 +133,6 @@ class Usuario(Base):
 
         # Efectuamos la creación propiamente dicha
         datos = normalizador(self.traduccion, datos)
-        print datos
         self.conexion.newuser(usuario, **datos)
         
         # Operaciones secundarias: Estado de la cuenta dentro del dominio
@@ -163,8 +161,8 @@ class Usuario(Base):
 
         if len(resultado) == 0:
             raise DatosException('No se encontraron datos') 
+        
         return resultado
-
 
     def __dateador_usuario(self, traduccion_claves, datos_actuales, datos_nuevos):
        

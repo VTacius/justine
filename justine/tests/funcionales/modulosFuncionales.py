@@ -9,33 +9,15 @@ def creador_test():
     
     return testapp
     
-def cargar_datos():
+def cargar_datos(entidad):
     from json import load
     fichero = open('/root/ambiente-justine/justine-api/justine/tests/datos.json', 'rb')
-    contenido = load(fichero)
-
-    return contenido
+    contenido = load(fichero).copy()
+     
+    return contenido[entidad]
 
 def credenciales(rol):
-    # TODO: Podrías hacer esto aún menos público
-    fixtures = {'credenciales': 
-        {
-            'administrador': {'usuario': 'alortiz', 'password': 'Figaro.12'},
-            'tecnicosuperior': {'usuario': 'alortiz', 'password': 'alortiz'},
-            'usuario': {'usuario': 'usuario', 'password': 'usuario'}
-        }
-    }
-
-    from justine import main
-    from webtest import TestApp
-
-    app = main({})
-    testapp = TestApp(app)
-
-    try:
-        credenciales = fixtures['credenciales'][rol]
-    except Exception as e:
-        pass
-    
-    auth = testapp.post_json('/auth/login', status=200, params=credenciales)
-    return {'WWW-Authorization': str(auth.json_body['token'])}
+    # Leer el README.md sobre como obtener un TOKEN
+    # Pues si, por ahora no tenemos un sistema de roles como tal
+    token = 'eyJyb2wiOiAiYWRtaW5pc3RyYWRvciIsICJkaXJlY2Npb24iOiAiYWxvcnRpeiJ9.3wR/qMGedccms7xFXN+GCbxlhbTknXGaBrtK3byOzJ0='
+    return {'WWW-Authorization': token}

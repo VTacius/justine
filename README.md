@@ -21,8 +21,8 @@ python setup.py develop
 ## Sobre como manejarlo desde consola
 
 
-### Obtenemos el token
-curl -H 'Content-Type: application/json' -XPOST http://0.0.0.0:6543/auth/login -d '{"usuario": "vtacius", "password": "vtacius"}' | jq '.token'
+### Obtenemos el token con el que vamos a realizar todas las demás operaciones
+curl -s -L -XPOST -H 'Content-Type: application/json' 127.0.0.1:6543/auth/tokenizador --user alortiz -d '{"direccion": "alortiz", "rol": "administrador"}' | jq '.token'
 
 ### Creamos el usuario
 curl -s -L -XPOST -H 'Content-Type: application/json' -H "www-authorization: $TOKEN" 127.0.0.1:6543/usuarios -d @usuarioCreacion.json | jq

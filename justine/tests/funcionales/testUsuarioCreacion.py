@@ -8,10 +8,9 @@ log = logging.getLogger('justine')
 from unittest import TestCase
 
 class Creacion(TestCase):
-
     @classmethod
     def setUpClass(self):
-        contenido = cargar_datos()
+        contenido = cargar_datos('usuario')
          
         self.uid = contenido[2]['uid']
         self.datos = {"corpus": contenido[2]}

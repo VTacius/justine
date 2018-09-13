@@ -10,7 +10,7 @@ from modulosFuncionales import cargar_datos
 class Creacion(TestCase):
     def setUp(self):
         self.config = testing.setUp()
-        contenido = cargar_datos()
+        contenido = cargar_datos('usuario')
          
         self.uid = contenido[1]['uid']
         self.datos = {"corpus": contenido[1]}
@@ -42,7 +42,8 @@ class Creacion(TestCase):
         peticion.jwt_claims = jwt_claims 
 
         respuesta = usuarios_creacion(peticion)
- 
+        print "Esta es la respuesta"
+        print respuesta 
         self.assertEqual(respuesta['mensaje'], 'Creado el usuario ' + self.uid)
 
     def test_usuarios_creacion_existente(self):

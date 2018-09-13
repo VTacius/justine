@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import hmac
+from json import dumps, loads
 from base64 import b64encode,b64decode
 from Crypto.Hash import SHA256
 from Crypto.Cipher import AES
@@ -36,68 +37,52 @@ class TOKENAuthenticationPolicy(object):
         return []
 
     def unauthenticated_userid(self, request):
-        # TODO: ¿Cuál debería ser la verdadera implementación de esto?
-        # Mi guía no tiene valor por defecto, aún así, no envia nada 
-        # Recuerda que depende de self.get.claims, siendo configurado este como un método
-        #  para request en __init__
+        # TODO: ¿Cuál debería ser la verdadera implementación de esto?, ¿Para que sirve? (¿Disponible en request?)
         return request.get_token_claims.get('usuario')
 
     def authenticated_userid(self, request):
         # TODO: ¿Cuál debería ser la verdadera implementación de esto?
-        return request.get_token_claims.get('usuario')
+        return request.get_token_claims.get('direccion')
 
     def effective_principals(self, request):
+        # Los principal se consiguen en el mismo token
         rol = request.get_token_claims.get('rol', False)
         if rol:
             principals = [Authenticated, rol]
         else: 
             principals = []
         return principals
-    
-    def encode_contenido(self, usuario, rol):
-        cipher = AES.new(self.clave_generadora, AES.MODE_CFB, self.clave_generadora)
-        try:
-            contenido = '{0}.{1}'.format(usuario.encode('utf-8'), rol.encode('utf-8'))
-        except UnicodeDecodeError as e:
-            # Causado por el hecho de intentar cambiar el TOKEN
-            return False
-        return b64encode(cipher.encrypt(contenido))
-    
-    def decode_contenido(self, contenido):
-        cipher = AES.new(self.clave_generadora, AES.MODE_CFB, self.clave_generadora)
-        try:
-            cifrado = cipher.decrypt(b64decode(contenido))
-        except TypeError as e:
-            # Incorrect padding: Cuando se ha modificado la longitud del token
-            return ('', '')
-        return cifrado.split('.')
+   
+    def crear_firma(self, mensaje):
+        hmc = hmac.new(key=self.clave_privada, msg=mensaje, digestmod=SHA256)
+        return b64encode(hmc.digest())
 
-    def create_token(self, usuario, rol):
-        mensaje = self.encode_contenido(usuario, rol) 
-        if not mensaje:
-            return False
-        # TODO: Debería ser msg=mensaje, lo que significa que no es cierto y hay que revisar exhaustivamente esto
-        hmc = hmac.new(key=self.clave_privada, msg=usuario, digestmod=SHA256)
-        hashito = b64encode(hmc.digest())
+    def create_token(self, direccion, rol):
+        """ 
+        Creamos un token hmac con un contenido que por ahora incluye direccion (IP Address) y rol
+        """
+        contenido = {'direccion': direccion, 'rol': rol}
+        mensaje = b64encode(dumps(contenido))
         
-        token = '{0}.{1}'.format(mensaje, hashito)
+        firma = self.crear_firma(mensaje)
+        
+        token = '{0}.{1}'.format(mensaje, firma)
         return token
     
     def get_claims(self, request):
         # No vayas a usar Authorization, que son otros cinco pesos
+        # TODO: No estoy verificando la ip del servidor, cuando así debería ser
         token = request.headers.get(self.http_header)
         if not token:
             return {}
         try: 
-            contenido, hmc = token.split('.')
-            usuario, rol = self.decode_contenido(contenido)
+            mensaje, firma = token.split('.')
         except ValueError as e:
+            # El token es inválido por no tener un punto de separación
             return {}
-       
-        token_a_verificar = self.create_token(usuario, rol)
-        log.warning(token_a_verificar)
-        log.warning(token)
-        if  token_a_verificar == token: 
-            return {'usuario': usuario, 'rol': rol}
+      
+        firma_a_verificar = self.crear_firma(mensaje)
+        if  firma_a_verificar == firma: 
+            return loads(b64decode(mensaje))
         else:
             return {}

@@ -12,7 +12,7 @@ class Modificacion(TestCase):
     @classmethod
     def setUpClass(self):
         self.config = testing.setUp()
-        contenido = cargar_datos()
+        contenido = cargar_datos('usuario')
          
         self.uid = contenido[1]['uid']
         self.datos = {"corpus": contenido[1]}
