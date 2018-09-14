@@ -91,14 +91,17 @@ def diccionador(borrables, item):
 
 def ldifeador(datos_actuales, datos_nuevos):
     """
-    LDIF, tu momento de brilla ha llegado
+    LDIF, tu momento de brillar ha llegado
     TODO: Aunque no se haya considerado en la aplicación original, en algún momento debería 
      considerarse atributos con dos o más valores
     TODO: Por otra parte, podría convenir el usar un parseador algo más "profesional" Resulta que internamente, modify_ldif usa un parser que no envía errores más que a pantalla, triste
     """
+    try:    
+        contenido = 'dn: {0}\n'.format(datos_actuales['dn'])
+        contenido += 'changetype: modify\n'
+    except KeyError:
+        raise DatosException('Los datos considerados actuales no contienen un DN válido')
     
-    contenido = 'dn: {0}\n'.format(datos_actuales['dn'])
-    contenido += 'changetype: modify\n'
     for d in datos_nuevos.keys():
         contenido += '-\nreplace: {0}\n'.format(d)
         contenido += '{0}: {1}\n'.format(d, datos_nuevos[d].encode('utf-8'))

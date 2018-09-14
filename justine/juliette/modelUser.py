@@ -26,7 +26,6 @@ GRUPO_POR_DEFECTO = "1005"
 class Usuario(Base):
     """
     TODO: Registrar la mayor cantidad posible de información 
-    TODO: Verificar que el usuario exista (¿?)
     """
 
     def __init__(self):
