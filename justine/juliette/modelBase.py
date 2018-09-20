@@ -13,10 +13,14 @@ log = logging.getLogger('justine')
 from excepciones import ConfiguracionException, OperacionException
 
 class Base(object):
-    def __init__(self):
+    def __init__(self, configuracion):
         """
         Se encarga de retornar un objeto SamDB, lista a usar en la operación que querramos
         """
+        self.claves = configuracion['claves']
+        self.borrables = configuracion['borrables']
+        self.traduccion = configuracion['traduccion']
+        
         self.lp = parametros()
         
         self.sesion = conectar(self.lp)
@@ -53,9 +57,12 @@ class Base(object):
 
     def _buscar_entidad(self, conexion, expresion, attrs=False):
         domain_dn = conexion.domain_dn()
-        
+       
         if attrs:
-            resultado = conexion.search(domain_dn, scope=SCOPE_SUBTREE, expression=(expresion), attrs=attrs)
+            r = []
+            for i in attrs:
+                r.append(i.encode('utf-8') if i.encode('utf-8') not in self.traduccion else self.traduccion[i])
+            resultado = conexion.search(domain_dn, scope=SCOPE_SUBTREE, expression=(expresion), attrs=r)
         else:
             resultado = conexion.search(domain_dn, scope=SCOPE_SUBTREE, expression=(expresion))
         
@@ -139,16 +146,6 @@ def operacion(func):
             # Intento de pasar argumentos desconocidos para las funciones propias de la API Samba
             log.warning(e)
             raise DatosException(e)
-        except Exception as e:
-            log.warning(e)
-            if isinstance(e.args, tuple):
-                if e.args[0] in [16, 67, 68]:
-                    raise OperacionException(e.args[1])
-                else:
-                    msg = e.args[0]
-                    if msg.find('Unable to find user') == 0 or msg.find('unable to parse ldif string') == 0 or msg.find('unable to import dn object') == 0:
-                        raise OperacionException(e)
-            raise Exception(e)
 
 
     return wrapper

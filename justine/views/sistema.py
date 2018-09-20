@@ -29,8 +29,6 @@ def login(peticion):
         datos = peticion.json_body
         usuario = datos['usuario'].encode('ascii')
         password = datos['password'].encode('ascii')
-        log.warning(usuario)
-        log.warning(password)
     except ValueError as e:
         return exceptions.HTTPBadRequest()
     except KeyError as e:

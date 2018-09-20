@@ -29,13 +29,9 @@ class Usuario(Base):
     """
 
     def __init__(self):
-        super(Usuario, self).__init__()
+        super(Usuario, self).__init__(configuracion)
        
-        self.claves = configuracion['claves']
-        self.borrables = configuracion['borrables']
-        self.traduccion = configuracion['traduccion']
-        
-        # Desde Base, tenemos: lp, creds, conexion 
+        # Desde Base, tenemos: lp, creds, conexion, claves, borrables, traduccion
   
     def __buscar_grupos(self, conexion, g):
         filtro = '(&(objectClass=group)(|(gidNumber={0})(cn={0})))'.format
@@ -147,12 +143,12 @@ class Usuario(Base):
         return "Creado el usuario %s" % usuario
    
     def __buscar_usuario(self, conexion, usuario=False, attrs=False):
+        claves = attrs if not type(attrs) in [unicode,str] else attrs.split(',')
         if usuario:
             expresion = 'sAMAccountName={0}'.format(usuario)
         else:
-            expresion = '(&(objectClass=user)(userAccountControl:{0}:={1}))'.format(OID_COMPARATOR_AND, UF_NORMAL_ACCOUNT)
-    
-        return self._buscar_entidad(conexion, expresion, attrs)
+            expresion = '(&(objectClass=user)(userAccountControl:{0}:={1}))'.format(OID_COMPARATOR_AND, UF_NORMAL_ACCOUNT) 
+        return self._buscar_entidad(conexion, expresion, claves)
 
     @operacion   
     def obtener(self, usuario=False, attrs=False):

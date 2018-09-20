@@ -79,9 +79,10 @@ def usuarios_existente(peticion):
 
 @view_config(route_name='usuarios_listado', renderer='json', permission='listar')
 def usuarios_listado(peticion):
+    claves = peticion.params.get('claves', False)
     try:
         usuario = Usuario()
-        contenido = usuario.obtener()
+        contenido = usuario.obtener(attrs=claves)
     except Exception as e:
         log.error(e)
         return exception.HTTPInternalServerError()
@@ -95,7 +96,7 @@ def usuarios_listado_options(peticion):
 
 @view_config(route_name='usuarios_detalle', renderer='json', permission='detallar')
 def usuarios_detalle(peticion):
-    
+    claves = peticion.params.get('claves', False)
     try:
         uid = peticion.matchdict['usuario'] 
     except KeyError as e:
@@ -105,7 +106,7 @@ def usuarios_detalle(peticion):
     # Realizamos la operación Detalle de Usuarios mediante la librería
     try:
         usuario = Usuario()
-        contenido = usuario.obtener(uid)
+        contenido = usuario.obtener(uid, attrs=claves)
     except DatosException as e:
         return exception.HTTPNotFound()
     except Exception as e:

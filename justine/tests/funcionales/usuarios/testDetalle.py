@@ -44,6 +44,22 @@ class Detalle(TestCase):
         
         self.assertEqual(respuesta, datos)
 
+    def test_detalle_claves(self):
+        claves = ['dn', 'givenName', 'cn']
+
+        res = self.testapp.get('/usuarios/' + self.uid, params={'claves': ','.join(claves)}, headers=self.token)
+        respuesta = res.json_body['mensaje'][0].keys()
+        self.assertListEqual(respuesta, claves)
+
+    def test_detalle_claves_noexistentes(self):
+        claves = ['dn', 'givenName', 'cn', 'noexistente']
+
+        res = self.testapp.get('/usuarios/' + self.uid, params={'claves': ','.join(claves)}, headers=self.token)
+        respuesta = res.json_body['mensaje'][0].keys()
+        del claves[claves.index('noexistente')]
+        
+        self.assertListEqual(respuesta, claves)
+    
     def test_detalle_noexistente(self):
         uid = 'fitzcarraldo'
         self.testapp.get('/usuarios/' + uid, status=404, headers=self.token)

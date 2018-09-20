@@ -20,19 +20,12 @@ configuracion = {
 # Este es el GID mínimo para grupo. Int por favor
 GRUPO_MINIMO_GID = 1005 
 
-
-
-
 class Grupo(Base):
     
     def __init__(self):
-        super(Grupo, self).__init__()
+        super(Grupo, self).__init__(configuracion)
         
-        self.claves = configuracion['claves']
-        self.borrables = configuracion['borrables']
-        self.traduccion = configuracion['traduccion']
-        
-        # Desde Base, tenemos: lp, creds, conexion 
+        # Desde Base, tenemos: lp, creds, conexion, claves, borrables, traduccion
 
     @operacion
     def crear(self, grupo, datos):
