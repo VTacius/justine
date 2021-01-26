@@ -1,8 +1,8 @@
 #!/usr/bin/python2.7
 # coding: utf-8
 
-from excepciones import AutenticacionException, DatosException
-from conexion import parametros, credenciales, conectar
+from .excepciones import AutenticacionException, DatosException
+from .conexion import parametros, credenciales, conectar
 
 from ldb import SCOPE_SUBTREE
 from samba.samdb import SamDB
@@ -10,7 +10,7 @@ from samba.samdb import SamDB
 import logging
 log = logging.getLogger('justine')
 
-from excepciones import ConfiguracionException, OperacionException
+from .excepciones import ConfiguracionException, OperacionException
 
 class Base(object):
     def __init__(self, configuracion):
@@ -33,35 +33,37 @@ class Base(object):
         return self.lp.get('workgroup')
     
     def __buscar_uid_disponible(self, uid_minimo, listado_actual):
-	listado_actual.sort()
-	
-	inicio = uid_minimo
-	final = listado_actual[-1]
-	
-	if final < inicio:
-	    # Acá, posiblemente un return
-	    return  inicio
-	else:
-	    lista_a_buscar = range(inicio, final)
-	    for i in lista_a_buscar:
-	        if i not in listado_actual:
-	            return i
-	   
-	    return listado_actual[-1] + 1
+        listado_actual.sort()
+
+        inicio = uid_minimo
+        final = listado_actual[-1]
+	    
+        if final < inicio:
+	        # Acá, posiblemente un return
+            return  inicio
+        else:
+	        lista_a_buscar = range(inicio, final)
+	        for i in lista_a_buscar:
+	            if i not in listado_actual:
+	                return i
+	       
+	        return listado_actual[-1] + 1
 
     def _obtener_uid_number(self, minimo, uid):
         contenido = self.obtener(attrs=[uid])
         listado = [int(item[uid]) for item in contenido if uid in item]
         
-	return str(self.__buscar_uid_disponible(minimo, listado))
+        return str(self.__buscar_uid_disponible(minimo, listado))
 
     def _buscar_entidad(self, conexion, expresion, attrs=False):
         domain_dn = conexion.domain_dn()
        
         if attrs:
             r = []
+            
             for i in attrs:
-                r.append(i.encode('utf-8') if i.encode('utf-8') not in self.traduccion else self.traduccion[i])
+                r.append(i if i not in self.traduccion else self.traduccion[i])
+            
             resultado = conexion.search(domain_dn, scope=SCOPE_SUBTREE, expression=(expresion), attrs=r)
         else:
             resultado = conexion.search(domain_dn, scope=SCOPE_SUBTREE, expression=(expresion))
@@ -76,9 +78,9 @@ def __definidor(indice, contenido):
      siendo "lista" precisamente los atributos que deben ser multivalor
     """
     resultado = contenido.get(indice)
-    resultado = [u for u in contenido.get(indice)]
+    resultado = [u.decode() for u in contenido.get(indice)]
     if len(resultado) > 1:
-        return resultado
+        return [attr for attr in resultado]
     else:
         return resultado[0]
 
@@ -127,9 +129,7 @@ def normalizador(traduccion_claves, datos, result = False):
     resultado = {} if not result else result
     for k in datos.keys():
         clave = k.lower() if k not in traduccion_claves else traduccion_claves[k].lower()
-        c = clave.encode('ascii', 'ignore')
-        d = datos[k].encode('utf-8')
-        resultado[c] = d
+        resultado[clave] = datos[k]
     return resultado
     
 def operacion(func):

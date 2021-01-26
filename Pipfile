@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pyramid = "*"
+waitress = "*"
+nose = "*"
+webtest = "*"
+pyramid-jwt = "*"
+colander = "*"
+cerberus = "*"
+pycrypto = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

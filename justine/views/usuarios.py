@@ -84,7 +84,6 @@ def usuarios_listado(peticion):
         usuario = Usuario()
         contenido = usuario.obtener(attrs=claves)
     except Exception as e:
-        log.error(e)
         return exception.HTTPInternalServerError()
 
     return contenido

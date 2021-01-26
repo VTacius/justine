@@ -19,7 +19,7 @@ class TOKENAuthenticationPolicy(object):
 
     def __init__(self, **settings):
         self.http_header = settings.get('http_header', 'www-authorization')
-        self.clave_privada = settings.get('clave_privada')
+        self.clave_privada = settings.get('clave_privada').encode()
         self.clave_generadora = settings.get('clave_generadora', 'This is an IV456')
 
     def remember(self, request, principal, **kw):
@@ -55,14 +55,14 @@ class TOKENAuthenticationPolicy(object):
    
     def crear_firma(self, mensaje):
         hmc = hmac.new(key=self.clave_privada, msg=mensaje, digestmod=SHA256)
-        return b64encode(hmc.digest())
+        return b64encode(hmc.digest()).decode()
 
     def create_token(self, direccion, rol):
         """ 
         Creamos un token hmac con un contenido que por ahora incluye direccion (IP Address) y rol
         """
-        contenido = {'direccion': direccion, 'rol': rol}
-        mensaje = b64encode(dumps(contenido))
+        contenido = dumps({'direccion': direccion, 'rol': rol}).encode()
+        mensaje = b64encode(contenido).decode()
         
         firma = self.crear_firma(mensaje)
         
@@ -81,8 +81,8 @@ class TOKENAuthenticationPolicy(object):
             # El token es inválido por no tener un punto de separación
             return {}
       
-        firma_a_verificar = self.crear_firma(mensaje)
-        if  firma_a_verificar == firma: 
+        firma_a_verificar = self.crear_firma(mensaje.encode())
+        if firma_a_verificar == firma: 
             return loads(b64decode(mensaje))
         else:
             return {}

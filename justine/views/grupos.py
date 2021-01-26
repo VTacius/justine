@@ -65,7 +65,7 @@ def grupos_listado(peticion):
     except Exception as e:
         log.error(e)
         return exception.HTTPInternalServerError()
-    print contenido
+    print(contenido)
     return contenido
 
 @view_config(route_name='grupos_listado_options', renderer='json')

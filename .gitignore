@@ -1,3 +1,7 @@
+# Ni siquiera se que es esto, porque sigue vacío después de un rato
+no-global-site-packages.txt
+*.lock
+
 # Texturas de la aplicación que no deben publicarse
 *.json
 *.swp

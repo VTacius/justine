@@ -1,8 +1,8 @@
 #!/usr/bin/python2.7 
 # coding: utf-8
 
-from modelBase import Base, operacion, diccionador, ldifeador, normalizador
-from excepciones import ConflictoException, OperacionException, DatosException
+from .modelBase import Base, operacion, diccionador, ldifeador, normalizador
+from .excepciones import ConflictoException, OperacionException, DatosException
 
 from ldb import SCOPE_SUBTREE, OID_COMPARATOR_AND
 from samba.dsdb import UF_NORMAL_ACCOUNT

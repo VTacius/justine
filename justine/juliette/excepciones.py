@@ -1,22 +1,20 @@
 #!/usr/bin/python2.7
 # coding: utf-8
 
-from exceptions import BaseException
-
-class ConfiguracionException(BaseException):
+class ConfiguracionException(Exception):
     pass
 
-class AutenticacionException(BaseException):
+class AutenticacionException(Exception):
     pass
 
-class OperacionException(BaseException):
+class OperacionException(Exception):
     pass
 
-class DatosException(BaseException):
+class DatosException(Exception):
     pass
 
-class ConflictoException(BaseException):
+class ConflictoException(Exception):
     pass
 
-class NoEntidadException(BaseException):
+class NoEntidadException(Exception):
     pass

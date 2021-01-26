@@ -1,8 +1,8 @@
 #!/usr/bin/python2.7
 # coding: utf-8
 
-from modelBase import Base, operacion, diccionador, ldifeador, normalizador
-from excepciones import ConflictoException, OperacionException, DatosException
+from .modelBase import Base, operacion, diccionador, ldifeador, normalizador
+from .excepciones import ConflictoException, OperacionException, DatosException
 
 from ldb import SCOPE_SUBTREE, OID_COMPARATOR_AND
 from samba.dsdb import UF_NORMAL_ACCOUNT
@@ -96,7 +96,7 @@ class Usuario(Base):
         """
         Usamos la librería subyacente para configurar el estado del usuario
         """
-        filtro_usuario = 'sAMAccountName={0}'.format(usuario)
+        filtro_usuario = 'sAMAccountName={0}'.format(usuario.decode())
         if isActivo:
             conexion.enable_account(filtro_usuario)
         else:
@@ -116,7 +116,7 @@ class Usuario(Base):
         # Lista de grupos para el usuario
         grupos = datos.pop('grupos')
 
-        # Pues no, por el momemento dejaremos lo de cambiar el uid
+        # Pues no, por el momento dejaremos lo de cambiar el uid
         datos.pop('uid', '')
 
         # Verificamos que el grupo configurado exista, y damos como grupo por defecto al primero
@@ -134,16 +134,16 @@ class Usuario(Base):
         self.__configurar_estado(self.conexion, usuario, esActivo) 
 
         # Operaciones secundarias: Configuramos los grupos
-        self.__configurar_grupos(self.conexion, usuario, grupos)
+        self.__configurar_grupos(self.conexion, usuario.decode(), grupos)
        
         # Operaciones secundarias: Es que necesito esto, de lo contrario, no es posible configurar contraseña
         password = datos.get('password')
-        self.conexion.setpassword("(samAccountName=%s)" % usuario, password)
+        self.conexion.setpassword("(samAccountName=%s)" % usuario.decode(), password)
 
-        return "Creado el usuario %s" % usuario
+        return "Creado el usuario %s" % usuario.decode()
    
     def __buscar_usuario(self, conexion, usuario=False, attrs=False):
-        claves = attrs if not type(attrs) in [unicode,str] else attrs.split(',')
+        claves = attrs.split(',') if type(attrs) == str else attrs
         if usuario:
             expresion = 'sAMAccountName={0}'.format(usuario)
         else:

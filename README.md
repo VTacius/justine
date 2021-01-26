@@ -2,30 +2,32 @@
 Una especie de API para acceder a la administración de usuarios en Samba y Zimbra
 
 ## Desarrollo
-apt update
-apt install virtualenv
-virtualenv ambiente-justine
-cd ambiente-justine/
+```bash
+apt install pipenv git curl jq
 git clone git@github.com:VTacius/justine-api.git
-
-source bin/activate
-pip install pyramid
-
-ln -s /usr/lib/python2.7/dist-packages/Crypto/ /root/ambiente-justine/local/lib/python2.7/site-packages/
-ln -s /usr/lib/python2.7/dist-packages/samba/ ~/ambiente-justine/lib/python2.7/
-ln -s /usr/lib/python2.7/dist-packages/talloc.x86_64-linux-gnu.so ~/ambiente-justine/lib/python2.7/
-ln -s /usr/lib/python2.7/dist-packages/ldb.so ~/ambiente-justine/lib/python2.7/
-
+cd justine-api
+pipenv --python 3.7 shell
 python setup.py develop
+```
 
-## Sobre como manejarlo desde consola
-
+### Creamos un par de usuario
+```bash
+samba-tool group add http_access --nis-domain=DOMINIO.COM --gid-number=1001 --description "Grupos para acceso web"
+samba-tool user create alortiz P.4ssw0rd --nis-domain=DOMINIO.COM --unix-home=/home/alortiz --uid-number=1002 --login-shell=/bin/false --gid-number=1001
+samba-tool user create opineda P.4ssw0rd --nis-domain=DOMINIO.COM --unix-home=/home/opineda --uid-number=1003 --login-shell=/bin/false --gid-number=1001
+```
 
 ### Obtenemos el token con el que vamos a realizar todas las demás operaciones
+```bash
 curl -s -L -XPOST -H 'Content-Type: application/json' 127.0.0.1:6543/auth/tokenizador --user alortiz -d '{"direccion": "alortiz", "rol": "administrador"}' | jq '.token'
+```
 
 ### Creamos el usuario
+```bash
 curl -s -L -XPOST -H 'Content-Type: application/json' -H "www-authorization: $TOKEN" 127.0.0.1:6543/usuarios -d @usuarioCreacion.json | jq
+```
 
 ### Obtenemos los datos del usuario que acabamos de crear
+```bash
 curl -s -L -XGET -H 'Content-Type: application/json' -H "www-authorization: $TOKEN" 127.0.0.1:6543/usuarios/kpenate  | jq
+```

@@ -13,7 +13,7 @@ session_info_flags = ( AUTH_SESSION_INFO_DEFAULT_GROUPS | AUTH_SESSION_INFO_AUTH
 import logging
 log = logging.getLogger('justine')
 
-from excepciones import ConfiguracionException 
+from .excepciones import ConfiguracionException 
 
 def parametros(fichero=False):
     """
