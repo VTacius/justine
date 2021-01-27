@@ -96,7 +96,7 @@ class Usuario(Base):
         """
         Usamos la librería subyacente para configurar el estado del usuario
         """
-        filtro_usuario = 'sAMAccountName={0}'.format(usuario.decode())
+        filtro_usuario = 'sAMAccountName={0}'.format(usuario)
         if isActivo:
             conexion.enable_account(filtro_usuario)
         else:
@@ -134,13 +134,13 @@ class Usuario(Base):
         self.__configurar_estado(self.conexion, usuario, esActivo) 
 
         # Operaciones secundarias: Configuramos los grupos
-        self.__configurar_grupos(self.conexion, usuario.decode(), grupos)
+        self.__configurar_grupos(self.conexion, usuario, grupos)
        
         # Operaciones secundarias: Es que necesito esto, de lo contrario, no es posible configurar contraseña
         password = datos.get('password')
-        self.conexion.setpassword("(samAccountName=%s)" % usuario.decode(), password)
+        self.conexion.setpassword("(samAccountName=%s)" % usuario, password)
 
-        return "Creado el usuario %s" % usuario.decode()
+        return "Creado el usuario %s" % usuario
    
     def __buscar_usuario(self, conexion, usuario=False, attrs=False):
         claves = attrs.split(',') if type(attrs) == str else attrs

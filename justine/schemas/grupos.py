@@ -8,11 +8,9 @@ class EsquemaGrupo():
     def __init__(self, *claves_requeridas):
         self.cadena = {'type': 'string'}
         self.correo = {'type': 'string', 'regex': "(?i)^[A-Z0-9._%!#$%&'*+-/=?^_`{|}~()]+@[A-Z0-9]+([.-][A-Z0-9]+)*\.[A-Z]{2,22}$"}
-        self.cadena_enteros = {'type': 'string', 'regex': "[0-9]+"}
     
         esquema = {}
         esquema["cn"] = self.cadena.copy()
-        esquema["type"] = self.cadena_enteros.copy()
         esquema["description"] = self.cadena.copy()
         esquema["mail"] = self.correo.copy()
         esquema["notes"] = self.cadena.copy()

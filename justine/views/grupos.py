@@ -17,6 +17,7 @@ def grupos_creacion(peticion):
     # Validando datos recibidos 
     try:
         v = EsquemaGrupo('cn')
+        print(peticion.json_body)
         contenido = v.validacion(peticion.json_body['corpus'])
     except KeyError as e:
         log.warning(e)
@@ -35,16 +36,12 @@ def grupos_creacion(peticion):
     # Realizamos la operacion Creacion de Usuarios mediante la librería
     try:
         grupo = Grupo()
-        cn_grupo = contenido['cn'].encode('ascii')
+        cn_grupo = contenido['cn']
         contenido = grupo.crear(cn_grupo, contenido)
     except ConflictoException as e:
         # Si el grupo ya existe, devolvemos un 409 Conflict
         log.warning(e)
         return exception.HTTPConflict(e)
-    except DatosException as e:
-        log.warning('key error')
-        log.warning(e)
-        return exception.HTTPBadRequest(e)
 
     # La siguiente parece ser LA FORMA de responder en este caso
     # TODO: Sin embargo, mi response en este caso esta vació cuando se llama con un Request creado vacío
@@ -55,7 +52,7 @@ def grupos_creacion(peticion):
         )
     )
 
-    return {'mensaje': contenido}
+    return {'mensaje': cn_grupo}
 
 @view_config(route_name='grupos_listado', renderer='json', permission='listar')
 def grupos_listado(peticion):

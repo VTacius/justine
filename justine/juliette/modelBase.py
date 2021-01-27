@@ -113,7 +113,7 @@ def ldifeador(datos_actuales, datos_nuevos):
     
     for d in datos_nuevos.keys():
         contenido += '-\nreplace: {0}\n'.format(d)
-        contenido += '{0}: {1}\n'.format(d, datos_nuevos[d].encode('utf-8'))
+        contenido += '{0}: {1}\n'.format(d, datos_nuevos[d])
     
     return contenido
 

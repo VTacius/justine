@@ -38,6 +38,7 @@ class Grupo(Base):
 
         datos['gidNumber'] = self._obtener_uid_number(GRUPO_MINIMO_GID, 'gidNumber')
 
+        print(datos)
         datos = normalizador(self.traduccion, datos)
         self.conexion.newgroup(**datos)
 

@@ -34,7 +34,7 @@ def usuarios_creacion(peticion):
     # Realizamos la operacion Creacion de Usuarios mediante la librería
     try:
         usuario = Usuario()
-        username = contenido['uid'].encode('ascii')
+        username = contenido['uid']
         contenido = usuario.crear(username, contenido)
     except ConflictoException as e:
         # Si el usuario existe, devolvemos un 409 Conflict
@@ -144,7 +144,7 @@ def usuarios_actualizacion(peticion):
     # Realizamos la operacion Actualización (Con datos COMPLETOS) de Usuarios mediante la librería
     try:
         usuario = Usuario()
-        username = contenido['uid'].encode('ascii')
+        username = contenido['uid']
         contenido = usuario.actualizar(username, contenido)
     except ConflictoException as e:
         # En este caso, conflicto viene a decir que no existe
@@ -155,9 +155,6 @@ def usuarios_actualizacion(peticion):
         #  (Esto se supone que es una convención para este punto de API)
         log.warning(e)
         return exception.HTTPBadRequest(e)
-    except Exception as e:
-        log.error(e)
-        return exception.HTTPInternalServerError(e)
     
     return {'mensaje': contenido}
 
